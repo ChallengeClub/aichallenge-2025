@@ -4,3 +4,5 @@
 *.webm
 *.db3
 rosbag2*/
+output/
+optuna_logs/
