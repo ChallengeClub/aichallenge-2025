@@ -6,3 +6,4 @@ ecos
 pandas
 plotly
 kaleido
+optuna
