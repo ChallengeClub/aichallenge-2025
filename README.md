@@ -12,3 +12,47 @@ Toward the competition, we will update the following pages to provide informatio
 
 - [日本語ページ](https://automotiveaichallenge.github.io/aichallenge-documentation-2025/)
 - [English Page](https://automotiveaichallenge.github.io/aichallenge-documentation-2025/en/)
+
+
+# TPAC ブランチ運用ルール
+## 🔀ブランチ構成
+| ブランチ名                | 用途・役割                                     |
+| -------------------- | ----------------------------------------- |
+| `main`               | **大会公式リポジトリの追従用ブランチ**（原則、直接開発しません）|
+| `develop`            | **チーム内の統合成果物ブランチ**。`main` から取り込みつつ各機能を統合。|
+| `feature/control/*`  | 制御機能（例：simple pure pursuit, MPC,　強化学習など）の開発用|
+| `feature/planning/*` | 経路計画機能（例：Vectormap最適化, accel/break.csv最適化, 経路最適化など）の開発用|
+| `feature/eval/*`     | 自動評価・ログ解析等の評価機能の開発用(例 パラメータ最適化, 自動評価ツール)の開発用|
+| `feature/integ/*`     | 機能統合用|
+
+## 🧭 　開発フロー
+```
+大会公式 → main → develop ← feature/integ/* ← 各機能ブランチから統合
+```
+- main: 公式リポジトリを追従するためのブランチ。直接開発は行いません。
+- develop: チーム内での開発成果を統合するブランチ。main の変更もここに取り込みます。
+- feature/*: 機能ごとにブランチを作成して開発を行い、最適なタイミングでdevelopブランチにマージします。
+- feature/integ/*: develop をベースにして、機能統合を行います。予選評価サーバへの提出もこちらのブランチからしてもOKです。
+
+## 📝　命名規則
+各featureブランチは判別できるように以下の命名ルールに従ってください。
+```
+feature/<機能カテゴリ>/<機能名>_<識別子>
+```
+| 種類      | 例                                   |
+| ------- | ----------------------------------- |
+| 制御機能    | `feature/control/simple_pure_pursuit_tanaka`|
+| 経路計画    | `feature/planning/vectormap_optimize_yamada`|
+| 評価機能    | `feature/eval/log-visualizer_v1`|
+| 機能統合・提出 | `feature/integ/submit_20250701_tanaka` |
+
+※識別子には、アカウント名 / バージョン番号 / チーム名略称などを使用してください。
+
+## ✅　コミット・PRルール
+- コミットは小さく、できるだけ意味のある単位で行ってください.
+- PR（プルリクエスト）はチームのレビューを経て develop にマージします。
+- 統合時は各自で統合する機能ブランチをマージし、feature/integ/* ブランチとしてプッシュしてください
+
+# 📣　運用相談とルールの更新について
+マージ・プッシュ・プルリクエストなどの運用判断に迷った場合は、Discordの”リポジトリ管理用チャンネル”で相談してください！！
+チームの状況や大会の進行に応じて、運用ルールは柔軟に見直し・更新していく方針です。
