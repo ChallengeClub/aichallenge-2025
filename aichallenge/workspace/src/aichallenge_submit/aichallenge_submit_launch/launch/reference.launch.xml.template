@@ -131,7 +131,7 @@
 
   <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
     <param name="use_external_target_vel" value="true"/>
-    <param name="external_target_vel" value="25.0"/>
+    <param name="external_target_vel" value="9.72"/>
     <param name="lookahead_gain" value="${PURE_PURSUIT_LOOKAHEAD_GAIN}"/>
     <param name="lookahead_min_distance" value="${PURE_PURSUIT_LOOKAHEAD_MIN}"/>
     <param name="speed_proportional_gain" value="${PURE_PURSUIT_SPEED_GAIN}"/>
