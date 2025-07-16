@@ -1,3 +1,31 @@
+"""
+adjust_trajectory_speed.py
+
+与えられた軌道CSVファイルから曲率を計算し、カーブの入口・出口に応じて速度を自動調整するスクリプト。
+
+## 処理内容
+- 入力CSVから x, y 座標を読み取り、曲率を計算
+- 曲率に応じて基本速度を決定
+- 曲率の変化（未来・過去）を考慮し、カーブ入口で減速・出口で加速
+- 結果を新しいCSVとして出力
+
+## 実行方法
+このスクリプトはファイルパスをコード内で指定しています。
+必要に応じて `input_csv` と `output_csv` を書き換えてください。
+
+Docker内で実行してください。
+```bash
+$ cd /aichallenge
+$ python3 tools/trajectory_raceline.py 
+```
+## 入出力ファイル : 適宜変更してください
+入力: raceline_awsim_15km.csv
+出力: raceline_awsim_35km_adjusted.csv 
+
+CSVの形式（列名）:
+x, y, z, x_quat, y_quat, z_quat, w_quat, speed
+"""
+
 import pandas as pd
 import numpy as np
 
