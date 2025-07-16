@@ -16,7 +16,7 @@ def objective(trial):
     print(f"Trying: lookahead_gain={lookahead_gain:.3f}, lookahead_min={lookahead_min:.3f}, speed_gain={speed_gain:.3f}")
 
     result = subprocess.run(
-        ["python3", "evaluate_wrapper.py", str(lookahead_gain), str(lookahead_min), str(speed_gain)],
+        ["python3", "tools/evaluate_wrapper.py", str(lookahead_gain), str(lookahead_min), str(speed_gain)],
         capture_output=True,
         text=True
     )
@@ -39,7 +39,7 @@ def main():
     print(study.best_params)
 
     # ログ保存
-    log_dir = "optuna_logs"
+    log_dir = "tools/optuna_logs"
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     df = study.trials_dataframe()
