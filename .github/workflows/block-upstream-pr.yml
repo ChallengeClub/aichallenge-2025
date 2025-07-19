@@ -1,0 +1,15 @@
+# .github/workflows/block-upstream-pr.yml
+name: Block PR to upstream
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+jobs:
+  prevent-pr-to-upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if PR is targeting upstream
+        run: |
+          if [[ "${{ github.repository_owner }}" != "your-username" ]]; then
+            echo "🚫 PR is targeting the upstream repo. Please PR to your own fork instead."
+            exit 1
+          fi
