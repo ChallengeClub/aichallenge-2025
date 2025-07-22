@@ -1,5 +1,7 @@
 # aichallenge-2025
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ChallengeClub/aichallenge-2025)
+
 本リポジトリでは、2025年度に実施される自動運転AIチャレンジでご利用いただく開発環境を提供します。参加者の皆様には、Autoware Universe をベースとした自動運転ソフトウェアを開発し、予選大会では End to End シミュレーション空間を走行するレーシングカートにインテグレートしていただきます。開発した自動運転ソフトウェアで、安全に走行しながらタイムアタックに勝利することが目標です。また、決勝大会では本物のレーシングカートへのインテグレーションを行っていただきます。
 
 This repository provides a development environment use in the Automotive AI Challenge which will be held in 2025. For the preliminaries, participants will develop autonomous driving software based on Autoware Universe and integrate it into a racing kart that drives in the End to End simulation space. The goal is to win in time attack while driving safely with the developed autonomous driving software. Also, for the finals, qualifiers will integrate it into a real racing kart.
@@ -67,5 +69,3 @@ GitHub の「Compare & pull request」ボタンを押すと、Fork元（Upstream
 # 📣　運用相談とルールの更新について
 マージ・プッシュ・プルリクエストなどの運用判断に迷った場合は、Discordの”リポジトリ管理用チャンネル”で相談してください！！
 チームの状況や大会の進行に応じて、運用ルールは柔軟に見直し・更新していく方針です。
-
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ChallengeClub/aichallenge-2025)
