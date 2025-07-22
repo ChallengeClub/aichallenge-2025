@@ -67,3 +67,5 @@ GitHub の「Compare & pull request」ボタンを押すと、Fork元（Upstream
 # 📣　運用相談とルールの更新について
 マージ・プッシュ・プルリクエストなどの運用判断に迷った場合は、Discordの”リポジトリ管理用チャンネル”で相談してください！！
 チームの状況や大会の進行に応じて、運用ルールは柔軟に見直し・更新していく方針です。
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/ChallengeClub/aichallenge-2025)
