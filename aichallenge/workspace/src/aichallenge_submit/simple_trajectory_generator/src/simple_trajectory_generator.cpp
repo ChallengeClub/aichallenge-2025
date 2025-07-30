@@ -119,7 +119,7 @@ private:
     
     csv_trajectory_.header.stamp = this->now();
     pub_->publish(csv_trajectory_);
-    RCLCPP_INFO(get_logger(), "Published trajectory with %zu points", csv_trajectory_.points.size());
+    RCLCPP_INFO_THROTTLE(get_logger(),*get_clock(), 60000 /*ms*/, "Published trajectory with %zu points", csv_trajectory_.points.size());
   }
 
   rcl_interfaces::msg::SetParametersResult on_parameter_event(
