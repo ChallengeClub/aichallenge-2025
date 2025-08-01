@@ -26,8 +26,12 @@ capture_screen() {
 # Function to request control mode
 request_control() {
     echo "Requesting control mode change..."
-    ros2 service call /control/control_mode_request autoware_auto_vehicle_msgs/srv/ControlModeCommand '{mode: 1}' >/dev/null
-    echo "Control mode change requested"
+    timeout 20s ros2 service call /control/control_mode_request autoware_auto_vehicle_msgs/srv/ControlModeCommand '{mode: 1}' >/dev/null
+    if [ $? -eq 124 ]; then
+        echo "Warning: Control mode request timed out after 20 seconds"
+    else
+        echo "Control mode change requested successfully"
+    fi
 }
 
 # Function to set initial pose
@@ -38,9 +42,10 @@ request_control() {
 #            w: 0.4788
 set_initial_pose() {
     echo "Setting initial pose..."
+    timeout 20s bash -c '
     ros2 topic pub -1 /initialpose geometry_msgs/msg/PoseWithCovarianceStamped "{ 
       header: {
-        frame_id: 'map'
+        frame_id: \"map\"
       },
       pose: {
         pose: {
@@ -57,9 +62,12 @@ set_initial_pose() {
           }
         }
       }
-    }" >/dev/null
-    echo "Initial pose set successfully"
-    sleep 1
+    }"' >/dev/null
+    if [ $? -eq 124 ]; then
+        echo "Warning: Initial pose publication timed out after 20s"
+    else
+        echo "Initial pose set successfully"
+    fi
 }
 
 check_awsim() {
@@ -67,7 +75,7 @@ check_awsim() {
     elapsed=0
     while ! timeout 10s ros2 topic echo /awsim/control_cmd 2>/dev/null | grep -q "sec:"; do
         sleep 0.5
-        elapsed=$((elapsed + 5))
+        elapsed=$((elapsed + 10))
         echo "Waiting for /awsim/control_cmd topic to be available... (${elapsed}s elapsed)"
 
         if [ $elapsed -ge $timeout_seconds ]; then
