@@ -1,0 +1,61 @@
+services:
+  # Zenoh service
+  zenoh:
+    image: "aichallenge-2025-dev-${USER}"
+    container_name: "zenoh"
+    privileged: true
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_DISTRO=humble
+      - USER=${USER}
+    volumes:
+      - ../aichallenge:/aichallenge
+      - ./:/vehicle
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri
+    working_dir: /vehicle
+    command: zenoh-bridge-ros2dds -c /vehicle/zenoh.json5
+
+  # Driver service
+  driver:
+    image: "ghcr.io/automotiveaichallenge/racing_kart_interface"
+    container_name: "racing_kart_interface"
+    privileged: true
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - USER=${USER}
+    volumes:
+      - /dev/vcu:/dev/vcu
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri
+      - /dev/vcu
+    group_add:
+      - dialout
+
+  # Autoware service
+  autoware:
+    image: "aichallenge-2025-dev-${USER}"
+    container_name: "aichallenge-2025-autoware"
+    privileged: true
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - USER=${USER}
+      - ROS_DISTRO=humble
+    volumes:
+      - ../output:/output
+      - ../aichallenge:/aichallenge
+      - ../remote:/remote
+      - ./:/vehicle
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri
+    working_dir: /aichallenge
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && sleep infinity"]
