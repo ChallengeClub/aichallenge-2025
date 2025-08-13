@@ -118,7 +118,7 @@
 
       <!-- Customizable -->
       <node pkg="simple_trajectory_generator" exec="simple_trajectory_generator_node" name="simple_trajectory_generator" output="screen">
-            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_35km_adjusted.csv"/>
+            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_35km_isshy_max38km.csv"/>
             <param name="z" value="6.5"/>
       </node>
       
@@ -133,7 +133,8 @@
     <param name="use_external_target_vel" value="false"/>
     <param name="external_target_vel" value="10.7"/>
     <param name="lookahead_gain" value="0.20"/>
-    <param name="lookahead_min_distance" value="3.0"/>
+    <param name="lookahead_min_distance" value="3.5"/>
+    <!-- 前方注視距離 = lookahead_gain * 現在の車速 + lookahead_min_distance -->
     <param name="speed_proportional_gain" value="1.0"/>
     <param name="steering_tire_angle_gain" value="$(var steering_tire_angle_gain_var)"/>
 
@@ -183,6 +184,7 @@
       <arg name="converter_param_path" value="$(find-pkg-share aichallenge_submit_launch)/config/converter.param.yaml"/>
       <arg name="csv_path_accel_map" value="$(find-pkg-share aichallenge_submit_launch)/data/accel_map.csv"/>
       <arg name="csv_path_brake_map" value="$(find-pkg-share aichallenge_submit_launch)/data/brake_map.csv"/>
+      <arg name="csv_path_steer_map" value="$(find-pkg-share aichallenge_submit_launch)/data/steer_map.csv"/>
 
       <arg name="max_throttle" value="1.0"/>
       <arg name="max_brake" value="1.0"/>
