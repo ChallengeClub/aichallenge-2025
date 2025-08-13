@@ -22,6 +22,16 @@ def create_min_time(data):
     return min(data["laps"])
 
 
+def create_total_lap_time(data):
+    if len(data["laps"]) == 0:
+        return None
+    return sum(data["laps"])
+
+
+def create_num_laps(data):
+    return len(data["laps"])
+
+
 def create_max_jerk(data, dt, ws):
     if len(data["laps"]) == 0:
         return None
@@ -50,6 +60,8 @@ with open(args.input) as fp:
 summary = {
     "laps": create_laps(details),
     "min_time": create_min_time(details),
+    "total_lap_time": create_total_lap_time(details),
+    "num_laps": create_num_laps(details),
     #"max_jerk": create_max_jerk(details, dt, ws),
 }
 

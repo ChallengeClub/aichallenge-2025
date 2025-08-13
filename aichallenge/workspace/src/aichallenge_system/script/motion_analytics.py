@@ -121,41 +121,100 @@ class Analyzer:
         return pose_speed_filter, pose_acceleration_filter
     
     def _create_plots(self, pose_time_stamp, pose_speed_filter, pose_acceleration_filter):
-        pose_x = [d[1] for d in pose_time_stamp]
-        pose_y = [d[2] for d in pose_time_stamp]
-        speed_values = [d[1] for d in pose_speed_filter]
-        accel_values = [d[1] for d in pose_acceleration_filter]
+        # データを1/10に間引く
+        step = 5
+        pose_time_stamp_sampled = pose_time_stamp[::step]
+        pose_speed_filter_sampled = pose_speed_filter[::step] if pose_speed_filter else []
+        pose_acceleration_filter_sampled = pose_acceleration_filter[::step] if pose_acceleration_filter else []
+        
+        pose_x = [d[1] for d in pose_time_stamp_sampled]
+        pose_y = [d[2] for d in pose_time_stamp_sampled]
+        speed_values = [d[1] for d in pose_speed_filter_sampled]
+        accel_values = [d[1] for d in pose_acceleration_filter_sampled]
 
-        fig = make_subplots(rows=1, cols=2, subplot_titles=("Velocity", "Acceleration"))
+        # x, yの全体範囲を計算
+        all_x = [d[1] for d in pose_time_stamp] if pose_time_stamp else [0]
+        all_y = [d[2] for d in pose_time_stamp] if pose_time_stamp else [0]
+        x_min, x_max = min(all_x), max(all_x)
+        y_min, y_max = min(all_y), max(all_y)
 
-        # 速度のプロット
+        # 単一プロット＋切り替えボタンによる解決策
+        fig = go.Figure()
+        
+        # 速度データのトレース
         if speed_values:
             fig.add_trace(go.Scatter(
                 x=pose_x, y=pose_y, mode='markers',
-                marker=dict(size=3, color=speed_values, colorscale='Jet', showscale=True, 
-                            colorbar=dict(title='Velocity [m/s]', x=0.45)),
-                name='Velocity'
-            ), row=1, col=1)
+                marker=dict(
+                    size=3, 
+                    color=speed_values, 
+                    colorscale='Jet', 
+                    showscale=True,
+                    colorbar=dict(
+                        title='[m/s]',
+                        title_side='top',
+                        x=1.02,
+                        thickness=15
+                    )
+                ),
+                name='Velocity',
+                visible=True
+            ))
         
-        # 加速度のプロット
+        # 加速度データのトレース
         if accel_values:
             fig.add_trace(go.Scatter(
                 x=pose_x, y=pose_y, mode='markers',
-                marker=dict(size=3, color=accel_values, colorscale='Jet', showscale=True,
-                            colorbar=dict(title='Acceleration [m/s^2]')),
-                name='Acceleration'
-            ), row=1, col=2)
+                marker=dict(
+                    size=3, 
+                    color=accel_values, 
+                    colorscale='Jet', 
+                    showscale=True,
+                    colorbar=dict(
+                        title='[m/s²]',
+                        title_side='top',
+                        x=1.02,
+                        thickness=15
+                    )
+                ),
+                name='Acceleration',
+                visible=False
+            ))
         
-        # レイアウトの更新
-        fig.update_xaxes(title_text="x [m]", row=1, col=1)
-        fig.update_yaxes(title_text="y [m]", scaleanchor="x", scaleratio=1, row=1, col=1)
-        fig.update_xaxes(title_text="x [m]", row=1, col=2)
-        fig.update_yaxes(scaleanchor="x", scaleratio=1, row=1, col=2)
+        # 切り替えボタンを追加
+        fig.update_layout(
+            updatemenus=[{
+                'buttons': [
+                    {
+                        'label': 'Velocity',
+                        'method': 'update',
+                        'args': [{'visible': [True, False]}]
+                    },
+                    {
+                        'label': 'Acceleration', 
+                        'method': 'update',
+                        'args': [{'visible': [False, True]}]
+                    }
+                ],
+                'direction': 'down',
+                'showactive': True,
+                'x': 0.1,
+                'y': 1.15
+            }]
+        )
+
+        # 軸の設定
+        fig.update_xaxes(title_text="x [m]", range=[x_min, x_max])
+        fig.update_yaxes(title_text="y [m]", range=[y_min, y_max], scaleanchor="x", scaleratio=1)
         
+        # シンプルで確実なレイアウト設定
         fig.update_layout(
             template='plotly_dark',
-            font=dict(size=16),
-            showlegend=False
+            font=dict(size=14),
+            showlegend=False,
+            margin=dict(t=120, b=60, l=60, r=120),  # 右マージンを大きく取りカラーバー用スペース確保
+            autosize=True,
+            height=600
         )
 
         return fig
