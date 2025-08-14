@@ -119,8 +119,8 @@
       <!-- Customizable -->
       <node pkg="simple_trajectory_generator" exec="simple_trajectory_generator_node" name="simple_trajectory_generator" output="screen">
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_35km_isshy_max38km.csv"/> -->
-            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_isshy_38km.csv"/>
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_base_35-38km.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_isshy_38km.csv"/> -->
+            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_isshy_35km.csv"/>
             <param name="z" value="6.5"/>
       </node>
       
@@ -137,7 +137,7 @@
     <param name="lookahead_gain" value="0.20"/>
     <param name="lookahead_min_distance" value="3.5"/>
     <!-- 前方注視距離 = lookahead_gain * 現在の車速 + lookahead_min_distance -->
-    <param name="speed_proportional_gain" value="1.0"/>
+    <param name="speed_proportional_gain" value="5.0"/>
     <!-- 目標加速度 = speed_proportional_gain × (目標速度 - 現在の車両速度) -->
     <param name="max_acceleration" value="3.0"/>
     <param name="min_acceleration" value="-5.0"/>
