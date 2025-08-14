@@ -70,3 +70,50 @@ $ python3 tools/visualize_bounds_and_trajectory.py
 ```
 実行後、tools/extracted_bounds/preview_bounds_and_trajectory.png 
 また、実行環境によっては同時にウィンドウ表示されます。
+## edit_trajectory.py
+
+レーン境界（left/right/centerline）の点群を背景に、トラジェクトリCSVをGUI上で編集できるツールです。  
+トラジェクトリの各点は速度[km/h]に応じて着色され（カラーマップ: `jet`）、マウスやキーボードで位置や速度を変更できます。  
+保存時は元のCSV構造を極力維持しつつ、`x`,`y`,`speed`（m/s）を上書きします。
+
+### 主な機能
+- レーン左右・センターを黒い細点で表示（`local_x,local_y` を優先的に利用）
+- トラジェクトリの散布図を速度[km/h]で色分け
+- トラジェクトリの編集機能（点の移動・追加・削除、速度変更、Undo/Redo）
+- 保存時にGUIのファイル保存ダイアログから出力先とファイル名を指定可能  
+  （ダイアログが利用できない場合は既定の `SAVE_CSV` に保存）
+
+### 依存関係
+- Python 3.9+
+- `matplotlib`, `pandas`, `numpy`, `tkinter`（GUI保存ダイアログに使用）
+
+### 入出力
+- 入力（既定値）
+  - レーン境界: `tools/extracted_bounds/{left.csv,right.csv,centerline.csv}`
+  - トラジェクトリ: `workspace/src/aichallenge_submit/simple_trajectory_generator/data/raceline_awsim_30km.csv`
+- 出力（既定値）
+  - 編集後トラジェクトリ: `workspace/src/aichallenge_submit/simple_trajectory_generator/data/edited_trajectory.csv`  
+    ※ 表示時は速度[km/h]、保存時は m/s 単位で保存
+
+### 実行方法
+Docker内での実行例:
+```bash
+cd /aichallenge
+python3 tools/edit_trajectory.py
+```
+
+### 操作方法（ウィンドウ上で）
+- 左クリック＋ドラッグ: 最寄り点を選択し、位置を移動
+- 右クリック: クリック位置に点を追加（速度は近傍点の平均で設定）
+- Delete / Backspace: 最寄り点を削除
+- マウスホイール上/下: 選択点の速度を ±1.0 km/h 変更
+- `[` / `]`: 選択点の速度を −/+ 1.0 km/h
+- `{` / `}`: 選択点の速度を −/+ 5.0 km/h
+- `Z` / `Ctrl+Z`: Undo
+- `Y` / `Ctrl+Y`: Redo
+- `S`: CSV保存（ファイルダイアログが開き、保存先とファイル名を指定可能）
+- `Q` / `Esc`: 終了
+
+### 備考
+- レーン境界CSVに `local_x,local_y` が存在しない場合は、`x,y`、それもなければ `latitude,longitude` から近似変換してXY座標を生成します。
+- 速度表示は km/h ですが、保存時は互換性のため m/s で出力します。
