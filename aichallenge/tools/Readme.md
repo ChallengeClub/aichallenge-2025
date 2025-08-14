@@ -27,3 +27,46 @@ Docker内で実行してください。
 $ cd /aichallenge
 $ python3 tools/trajectory_raceline.py 
 ```
+
+## lanelet2_bounds_to_csv.py
+
+Lanelet2形式（OSM）の地図からレーン境界線を抽出し、CSVとして出力するツールです。  
+出力CSVには `local_x, local_y`（ローカル座標系）や緯度経度が含まれます。
+
+### 主な機能
+- Lanelet2の`relation`タグまたは`subtype`タグから境界線を自動抽出
+- 左境界（left）、右境界（right）、センターライン（centerline）ごとに個別CSV出力
+- すべての境界をまとめた単一CSV出力も可能
+
+### 出力例（left.csv）
+| lanelet_or_way_id | role  | index | latitude    | longitude   | local_x   | local_y   |
+|-------------------|-------|-------|-------------|-------------|-----------|-----------|
+| 101               | left  | 0     | 35.12345678 | 135.1234567 | 89630.123 | 43130.456 |
+
+### 実行方法
+Docker内で実行してください。
+```bash
+$ cd /aichallenge
+$ python3 tools/lanelet2_bounds_to_csv.py
+```
+※ デフォルトで workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm を入力に、
+tools/extracted_bounds/ に left.csv / right.csv / centerline.csv を出力します。
+
+## visualize_bounds_and_trajectory.py
+
+lanelet2_bounds_to_csv.py で出力した境界CSVと、走行軌跡（trajectory）CSVを重ねて2D表示するツールです。
+境界はローカル座標系（local_x, local_y）で表示され、トラジェクトリと座標系を揃えられます。
+
+### 主な機能
+
+- 左・右・センターライン境界の点群描画（local座標系）
+- トラジェクトリ（例: raceline_awsim_30km.csv）の点描画
+- 像として保存（PNG）
+
+### 実行方法
+```
+$ cd /aichallenge
+$ python3 tools/visualize_bounds_and_trajectory.py
+```
+実行後、tools/extracted_bounds/preview_bounds_and_trajectory.png 
+また、実行環境によっては同時にウィンドウ表示されます。
