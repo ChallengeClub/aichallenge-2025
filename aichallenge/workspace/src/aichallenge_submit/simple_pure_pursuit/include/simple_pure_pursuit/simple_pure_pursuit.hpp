@@ -51,6 +51,8 @@ class SimplePurePursuit : public rclcpp::Node {
   const bool use_external_target_vel_;
   const double external_target_vel_;
   const double steering_tire_angle_gain_;
+  const double max_acceleration_;
+  const double min_acceleration_;
 
 
  private:

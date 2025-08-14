@@ -77,8 +77,13 @@ cleanup() {
     # Stop recording rosbag
     echo "Stop rosbag"
     if [[ -n $PID_ROSBAG ]] && kill -0 "$PID_ROSBAG" 2>/dev/null; then
-        graceful_shutdown "$PID_ROSBAG" 3
+        graceful_shutdown "$PID_ROSBAG" 15
     fi
+
+    # Ensure all data is written to disk and wait for rosbag to be finalized
+    echo "Syncing filesystem to ensure rosbag is written..."
+    sync
+    sleep 5
 
     # shutdown ROS2 nodes
     echo "Shutting down ROS2 nodes gracefully..."
@@ -102,12 +107,18 @@ cleanup() {
 
     # Compress rosbag
     echo "Compress rosbag"
-    if [ -d "rosbag2_autoware" ]; then
+    if [ -f "rosbag2_autoware/metadata.yaml" ]; then
         # Postprocess result
         echo "Postprocess result"
-        python3 /aichallenge/workspace/src/aichallenge_system/script/motion_analytics.py --input rosbag2_autoware --output .
+        python3 /aichallenge/workspace/src/aichallenge_system/script/motion_analytics.py --input rosbag2_autoware --output . --save-details
+        # Convert result after motion_analytics creates the details file
+        echo "Convert result"
+        python3 /aichallenge/workspace/src/aichallenge_system/script/result-converter.py 60 11 --input result-details-from-bag.json
+
         tar -czf rosbag2_autoware.tar.gz rosbag2_autoware
         rm -rf rosbag2_autoware
+    else
+        echo "Warning: rosbag2_autoware/metadata.yaml not found. Skipping postprocessing and compression."
     fi
 
     # check for remaining processes
@@ -224,10 +235,6 @@ wait "$PID_AWSIM"
 echo "Stop screen capture"
 bash /aichallenge/publish.bash screen
 sleep 3
-
-# Convert result
-echo "Convert result"
-python3 /aichallenge/workspace/src/aichallenge_system/script/result-converter.py 60 11
 
 # If AWSIM finished naturally, we'll proceed with the rest of the cleanup
 cleanup

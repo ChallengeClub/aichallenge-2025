@@ -4,6 +4,8 @@
 source "/aichallenge/workspace/install/setup.bash"
 
 # Topics with data (excluding 0-message topics from original bag)
+# For debugging, only record essential topics to reduce load.
+# Restore all topics to ensure the evaluation system gets all required data.
 TOPICS=(
     "/aichallenge/awsim/status"
     "/awsim/control_cmd"
@@ -49,7 +51,6 @@ TOPICS=(
     "/vehicle/status/gear_status"
     "/vehicle/status/hazard_lights_status"
     "/vehicle/status/steering_status"
-    "/vehicle/status/turn_indicators_status"
     "/vehicle/status/velocity_status"
 )
 
