@@ -63,10 +63,14 @@ except (FileNotFoundError, json.JSONDecodeError):
     # Handle cases where the file is missing or empty/corrupted
     details = {}
 
+max_velocity_mps = create_max_velocity(details)
+max_velocity_kmph = max_velocity_mps * 3.6 if max_velocity_mps is not None else None
+
 summary = {
     "laps": create_laps(details),
     "min_time": create_min_time(details),
-    "max_velocity": create_max_velocity(details),
+    "max_velocity_mps": max_velocity_mps,
+    "max_velocity_kmph": max_velocity_kmph,
     "max_jerk": create_max_jerk(details, dt, ws),
 }
 

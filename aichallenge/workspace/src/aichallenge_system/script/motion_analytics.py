@@ -90,6 +90,20 @@ class Analyzer:
         self.poses = []
         self.velocities = []
 
+    def _read_laps_data(self):
+        """lapsデータをresult-details.jsonから読み込む"""
+        original_details_path = Path(self.input_bag_dir).parent / "result-details.json"
+        laps_data = []
+        if original_details_path.exists():
+            try:
+                with open(original_details_path, "r") as f:
+                    original_data = json.load(f)
+                    laps_data = original_data.get("laps", [])
+            except (json.JSONDecodeError, FileNotFoundError):
+                # ファイルが存在しない、または中身が不正な場合は空のリストを返す
+                pass
+        return laps_data
+
     def _read_bag_data(self):
         reader = create_reader(self.input_bag_dir)
         pose_time_stamp = []
@@ -200,22 +214,39 @@ class Analyzer:
 
     def plot(self):
         pose_time_stamp, pose_speed, pose_acceleration, _ = self._read_bag_data()
+
+        # 1周目のデータをプロットから除外する
+        laps_data = self._read_laps_data()
+        if laps_data and len(laps_data) > 0 and pose_time_stamp:
+            first_lap_duration = laps_data[0]
+            start_time = pose_time_stamp[0][0]
+            first_lap_end_time = start_time + first_lap_duration
+
+            # 2周目が始まる最初のインデックスを見つける
+            start_index_for_plot = -1
+            for i, (ts, _, _) in enumerate(pose_time_stamp):
+                if ts > first_lap_end_time:
+                    start_index_for_plot = i
+                    break
+
+            if start_index_for_plot != -1:
+                print(f"INFO: 1周目のデータをグラフから除外します。({start_index_for_plot}番目のデータから表示)")
+                pose_time_stamp = pose_time_stamp[start_index_for_plot:]
+            else:
+                print("INFO: 2周目以降のデータが見つからなかったため、グラフは空になります。")
+                pose_time_stamp = []  # 2周目のデータがなければプロットしない
+
         pose_speed_filter, pose_acceleration_filter = self._sync_and_filter_data(
             pose_time_stamp, pose_speed, pose_acceleration
         )
-        
+
         fig = self._create_plots(pose_time_stamp, pose_speed_filter, pose_acceleration_filter)
 
         save_and_show_plot(fig, self.output_dir, self.file_name)
 
     def save_details_json(self):
         # AWSIMが生成するlapsは利用価値があるので、もしあれば読み込んでマージする
-        original_details_path = Path(self.input_bag_dir).parent / "result-details.json"
-        laps_data = []
-        if original_details_path.exists():
-            with open(original_details_path, 'r') as f:
-                original_data = json.load(f)
-                laps_data = original_data.get("laps", [])
+        laps_data = self._read_laps_data()
 
         output_data = {
             "laps": laps_data,
@@ -224,7 +255,7 @@ class Analyzer:
             "seed": 0
         }
         output_path = Path(self.output_dir) / "result-details-from-bag.json"
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(output_data, f, indent=4)
         print(f"✅ Saved full details to: {output_path}")
 
