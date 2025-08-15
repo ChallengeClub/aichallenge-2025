@@ -42,11 +42,19 @@ public:
     
     if (csv_path.empty()) {
       RCLCPP_ERROR(get_logger(), "CSV path is not specified");
+      rclcpp::shutdown();
+      return;
+    }
+
+    if (!std::filesystem::exists(csv_path)) {
+      RCLCPP_ERROR(get_logger(), "Trajectory file does not exist: %s", csv_path.c_str());
+      rclcpp::shutdown();
       return;
     }
     
     if (!loadCSVTrajectory(csv_path)) {
       RCLCPP_ERROR(get_logger(), "Failed to load CSV file: %s", csv_path.c_str());
+      rclcpp::shutdown();
       return;
     }
     
