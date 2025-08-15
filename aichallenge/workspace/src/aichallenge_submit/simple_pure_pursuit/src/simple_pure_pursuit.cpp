@@ -29,6 +29,8 @@ SimplePurePursuit::SimplePurePursuit()
   pub_raw_cmd_ = create_publisher<AckermannControlCommand>("output/raw_control_cmd", 1);
   pub_lookahead_point_ = create_publisher<PointStamped>("/control/debug/lookahead_point", 1);
 
+  is_startup = 0;
+
   const auto bv_qos = rclcpp::QoS(rclcpp::KeepLast(1)).durability_volatile().best_effort();
   sub_kinematics_ = create_subscription<Odometry>(
     "input/kinematics", bv_qos, [this](const Odometry::SharedPtr msg) { odometry_ = msg; });
@@ -116,8 +118,30 @@ void SimplePurePursuit::onTimer()
     // calc steering angle for lateral control
     double alpha = std::atan2(lookahead_point_y - rear_y, lookahead_point_x - rear_x) -
                    tf2::getYaw(odometry_->pose.pose.orientation);
+    double base = 2.0 * wheel_base_ * std::sin(alpha);
+    double atan2result = std::atan2(base , lookahead_distance);
+    if(std::abs(atan2result) < 1){
+      atan2result = pow(atan2result, -3.0) * (std::abs(atan2result) / atan2result);
+    }else{
+      atan2result = pow(atan2result, 3.0) * (std::abs(atan2result) / atan2result);
+    }
     cmd.lateral.steering_tire_angle =
-      steering_tire_angle_gain_ * std::atan2(2.0 * wheel_base_ * std::sin(alpha), lookahead_distance);
+      steering_tire_angle_gain_ * std::atan2(base , lookahead_distance);
+    if(current_longitudinal_vel < 4.1 && is_startup < 1) {
+      cmd.lateral.steering_tire_angle = 0;
+    }else if(current_longitudinal_vel < 4.45 && is_startup < 70){
+      is_startup += 1;
+      cmd.lateral.steering_tire_angle = -0.65;
+    }else if(is_startup < 320){
+      is_startup += 1;
+      cmd.lateral.steering_tire_angle = 0;
+    }else if(is_startup < 370){
+      is_startup += 1;
+      cmd.lateral.steering_tire_angle = -0.1;
+    }else if(is_startup < 1900){
+      is_startup = 2000;
+      RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 1000 /*ms*/, "Finished startup");
+    }
   }
   pub_cmd_->publish(cmd);
   cmd.lateral.steering_tire_angle /=  steering_tire_angle_gain_;

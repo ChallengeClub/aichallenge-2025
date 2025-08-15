@@ -50,8 +50,8 @@ set_initial_pose() {
       pose: {
         pose: {
           position: {
-            x: 89634.00,
-            y: 43129.00,
+            x: 89665.00,
+            y: 43123.70,
             z: 0.0
           },
           orientation: {
