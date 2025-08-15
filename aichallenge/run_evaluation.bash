@@ -174,6 +174,10 @@ cd "$OUTPUT_DIRECTORY" || exit
 # shellcheck disable=SC1091
 source /aichallenge/workspace/install/setup.bash
 sudo ip link set multicast on lo
+
+# Install chrome for motion_analytics.py if not present
+python3 -c "import kaleido.scopes.chromium; kaleido.scopes.chromium.get_chromium_path()" >/dev/null 2>&1 || (echo 'Chrome for Kaleido not found, installing...' && python3 -m kaleido.scopes.chromium.cli.get_chrome)
+
 sudo sysctl -w net.core.rmem_max=2147483647 >/dev/null
 
 # Start AWSIM with nohup

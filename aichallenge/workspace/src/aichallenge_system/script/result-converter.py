@@ -72,6 +72,10 @@ summary = {
     "max_velocity_mps": max_velocity_mps,
     "max_velocity_kmph": max_velocity_kmph,
     "max_jerk": create_max_jerk(details, dt, ws),
+    "max_longitudinal_acceleration": details.get("max_longitudinal_acceleration"),
+    "min_longitudinal_acceleration": details.get("min_longitudinal_acceleration"),
+    "max_lateral_acceleration": details.get("max_lateral_acceleration"),
+    "min_lateral_acceleration": details.get("min_lateral_acceleration"),
 }
 
 with open(args.output, "w") as fp:

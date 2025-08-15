@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import os
 import sys
+import math
 from pathlib import Path
 
 import plotly.graph_objects as go
@@ -22,8 +23,11 @@ def save_and_show_plot(fig, output_dir, file_name):
     output_dir_path.mkdir(parents=True, exist_ok=True)
     [name, suffix] = file_name.split(".")
     timestamp = datetime.now().strftime("%y-%m-%d-%H-%M-%S")
+    try:
+        fig.write_image(output_dir_path / f"{name}-{timestamp}.{suffix}", width=1800, height=600)
+    except Exception as e:
+        print(f"Warning: Could not write image file. Error: {e}")
     output_path_html = output_dir_path / f"{name}-{timestamp}.html"
-    # fig.write_image(output_dir_path / f"{name}-{timestamp}{suffix}", width=800, height=600)
     fig.write_html(output_path_html)
 
 
@@ -78,6 +82,7 @@ def sync_topic(data1, data2) -> list:
 analyze_topic_list = [
     "/localization/kinematic_state",
     "/localization/acceleration",
+    "/vehicle/status/steering_status",
 ]
 
 
@@ -89,9 +94,13 @@ class Analyzer:
         self.file_name = "motion_analytics.png"
         self.poses = []
         self.velocities = []
+        self.max_long_accel = None
+        self.min_long_accel = None
+        self.max_lat_accel = None
+        self.min_lat_accel = None
 
     def _read_laps_data(self):
-        """lapsデータをresult-details.jsonから読み込む"""
+        """lapsデータをresult-details.jsonから読み込む""" 
         original_details_path = Path(self.input_bag_dir).parent / "result-details.json"
         laps_data = []
         if original_details_path.exists():
@@ -109,6 +118,8 @@ class Analyzer:
         pose_time_stamp = []
         pose_speed = []
         pose_acceleration = []
+        pose_lateral_acceleration = []
+        pose_steering = []
         topic_type_list = {}
 
         for topic_type in reader.get_all_topics_and_types():
@@ -144,12 +155,21 @@ class Analyzer:
                             "z": data.twist.twist.linear.z
                         })
                         pose_speed.append([stamp, data.twist.twist.linear.x])
+                        
+                        # Calculate lateral acceleration from kinematic state
+                        v_x = data.twist.twist.linear.x
+                        omega_z = data.twist.twist.angular.z
+                        lat_accel = v_x * omega_z
+                        pose_lateral_acceleration.append([stamp, lat_accel])
+
                 elif topic_name == "/localization/acceleration":
                     pose_acceleration.append([stamp, data.accel.accel.linear.x])
+                elif topic_name == "/vehicle/status/steering_status":
+                    pose_steering.append([stamp, math.degrees(data.steering_tire_angle)])
         
-        return pose_time_stamp, pose_speed, pose_acceleration, topic_type_list
+        return pose_time_stamp, pose_speed, pose_acceleration, pose_lateral_acceleration, pose_steering, topic_type_list
 
-    def _sync_and_filter_data(self, pose_time_stamp, pose_speed, pose_acceleration):
+    def _sync_and_filter_data(self, pose_time_stamp, pose_speed, pose_acceleration, pose_lateral_acceleration, pose_steering):
         if pose_speed and pose_time_stamp:
             pose_speed_filter = sync_topic(pose_time_stamp, pose_speed)
         else:
@@ -160,10 +180,20 @@ class Analyzer:
         else:
             pose_acceleration_filter = []
 
-        return pose_speed_filter, pose_acceleration_filter
+        if pose_lateral_acceleration and pose_time_stamp:
+            pose_lateral_acceleration_filter = sync_topic(pose_time_stamp, pose_lateral_acceleration)
+        else:
+            pose_lateral_acceleration_filter = []
+
+        if pose_steering and pose_time_stamp:
+            pose_steering_filter = sync_topic(pose_time_stamp, pose_steering)
+        else:
+            pose_steering_filter = []
+
+        return pose_speed_filter, pose_acceleration_filter, pose_lateral_acceleration_filter, pose_steering_filter
     
-    def _create_plots(self, pose_time_stamp, pose_speed_filter, pose_acceleration_filter):
-        fig = make_subplots(rows=1, cols=2, subplot_titles=("Velocity", "Acceleration"))
+    def _create_plots(self, pose_time_stamp, pose_speed_filter, pose_acceleration_filter, pose_steering_filter):
+        fig = make_subplots(rows=1, cols=3, subplot_titles=("Velocity", "Acceleration", "Steering Angle"))
 
         if not pose_time_stamp:
             # データがない場合は空のプロットを返す
@@ -173,6 +203,7 @@ class Analyzer:
         pose_y = [d[2] for d in pose_time_stamp]
         speed_values = [d[1] for d in pose_speed_filter]
         accel_values = [d[1] for d in pose_acceleration_filter]
+        steering_values = [d[1] for d in pose_steering_filter]
 
         # 速度のプロット
         if speed_values:
@@ -181,7 +212,7 @@ class Analyzer:
                 marker=dict(
                     size=3, color=speed_values, colorscale='Viridis', showscale=True,
                     cmin=min(speed_values), cmax=max(speed_values),  # Set color range to data range
-                    colorbar=dict(title='Velocity [m/s]', x=0.45)
+                    colorbar=dict(title='Velocity [m/s]', thickness=15, x=1.02, y=0.83, len=0.3)
                 ),
                 name='Velocity'
             ), row=1, col=1)
@@ -193,27 +224,44 @@ class Analyzer:
                 marker=dict(
                     size=3, color=accel_values, colorscale='Plasma', showscale=True,
                     cmin=min(accel_values), cmax=max(accel_values),  # Set color range to data range
-                    colorbar=dict(title='Acceleration [m/s^2]')
+                    colorbar=dict(title='Acceleration [m/s^2]', thickness=15, x=1.02, y=0.5, len=0.3)
                 ),
                 name='Acceleration'
             ), row=1, col=2)
 
+        # ステアリングのプロット
+        if steering_values:
+            fig.add_trace(go.Scatter(
+                x=pose_x, y=pose_y, mode='markers',
+                marker=dict(
+                    size=3, color=steering_values, colorscale='RdBu', showscale=True,
+                    cmin=-5.0, cmax=5.0,
+                    colorbar=dict(title='Steering [deg]', thickness=15, x=1.02, y=0.17, len=0.3)
+                ),
+                name='Steering'
+            ), row=1, col=3)
+
         # レイアウトの更新
         fig.update_xaxes(title_text="x [m]", row=1, col=1)
-        fig.update_yaxes(title_text="y [m]", scaleanchor="x", scaleratio=1, row=1, col=1)
+        fig.update_yaxes(title_text="y [m]", row=1, col=1)
         fig.update_xaxes(title_text="x [m]", row=1, col=2)
-        fig.update_yaxes(scaleanchor="x", scaleratio=1, row=1, col=2)
+        fig.update_yaxes(row=1, col=2)
+        fig.update_xaxes(title_text="x [m]", row=1, col=3)
+        fig.update_yaxes(row=1, col=3)
         
         fig.update_layout(
+            width=1800,
+            height=600,
             template='plotly_dark',
             font=dict(size=16),
-            showlegend=False
+            showlegend=False,
+            margin=dict(r=180)  # 右マージンを増やしてカラーバーのスペースを確保
         )
 
         return fig
 
     def plot(self):
-        pose_time_stamp, pose_speed, pose_acceleration, _ = self._read_bag_data()
+        pose_time_stamp, pose_speed, pose_acceleration, pose_lateral_acceleration, pose_steering, _ = self._read_bag_data()
 
         # 1周目のデータをプロットから除外する
         laps_data = self._read_laps_data()
@@ -236,11 +284,24 @@ class Analyzer:
                 print("INFO: 2周目以降のデータが見つからなかったため、グラフは空になります。")
                 pose_time_stamp = []  # 2周目のデータがなければプロットしない
 
-        pose_speed_filter, pose_acceleration_filter = self._sync_and_filter_data(
-            pose_time_stamp, pose_speed, pose_acceleration
+        pose_speed_filter, pose_acceleration_filter, pose_lateral_acceleration_filter, pose_steering_filter = self._sync_and_filter_data(
+            pose_time_stamp, pose_speed, pose_acceleration, pose_lateral_acceleration, pose_steering
         )
 
-        fig = self._create_plots(pose_time_stamp, pose_speed_filter, pose_acceleration_filter)
+        long_accel_values = [d[1] for d in pose_acceleration_filter]
+        if long_accel_values:
+            self.max_long_accel = max(long_accel_values)
+            self.min_long_accel = min(long_accel_values)
+            print(f"Longitudinal Acceleration - Max: {self.max_long_accel:.2f} m/s^2, Min: {self.min_long_accel:.2f} m/s^2")
+
+        lat_accel_values = [d[1] for d in pose_lateral_acceleration_filter]
+        if lat_accel_values:
+            self.max_lat_accel = max(lat_accel_values)
+            self.min_lat_accel = min(lat_accel_values)
+            print(f"Lateral Acceleration - Max: {self.max_lat_accel:.2f} m/s^2, Min: {self.min_lat_accel:.2f} m/s^2")
+
+
+        fig = self._create_plots(pose_time_stamp, pose_speed_filter, pose_acceleration_filter, pose_steering_filter)
 
         save_and_show_plot(fig, self.output_dir, self.file_name)
 
@@ -252,7 +313,11 @@ class Analyzer:
             "laps": laps_data,
             "velocities": self.velocities,
             "poses": self.poses,
-            "seed": 0
+            "seed": 0,
+            "max_longitudinal_acceleration": self.max_long_accel,
+            "min_longitudinal_acceleration": self.min_long_accel,
+            "max_lateral_acceleration": self.max_lat_accel,
+            "min_lateral_acceleration": self.min_lat_accel,
         }
         output_path = Path(self.output_dir) / "result-details-from-bag.json"
         with open(output_path, "w") as f:
