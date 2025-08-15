@@ -1,24 +1,38 @@
 SHELL := /bin/bash
+# 既にコンテナが立ち上がっている場合はログの表示を行います。
+# autowareのみ起動・ログ表示
+autoware:
+	docker compose up -d autoware
+	docker compose logs -f autoware
 
-# autowareのみ起動
-run-autoware-only:
-	@if ! docker compose ps autoware | grep -q "Up"; then \
-		echo "Starting autoware container..."; \
-		docker compose up -d autoware; \
-	else \
-		echo "Autoware container already running"; \
-	fi
-	@echo "Starting all services without build..."
-	docker compose exec -T autoware bash -c "bash run_autoware.bash vehicle" &
+# racing kartの起動・ログ表示
+driver:
+	docker compose up -d driver
+	docker compose logs -f driver
 
-# racing kartとzenohの起動 
-run-driver-zenoh:
+# zenohの起動・ログ表示
+zenoh:
+	docker compose up -d zenoh
+	docker compose logs -f zenoh
+
+# racing_kart_interfaceのbashを起動
+driver-bash:
+	docker compose run driver bash
+
+# racing kartとzenohの起動・ログ表示
+driver-zenoh:
 	docker compose up -d driver zenoh
+	docker compose logs -f driver zenoh
+
+# Autowareとracing kartとzenohの起動
+run-full-system:
+	docker compose up -d autoware driver zenoh
+	docker compose logs -f autoware driver zenoh
 
 # Download submission data by asking for credentials interactively
 # Usage:
 #   make download [SUBMISSION_ID=<id>]
-download-only:
+download:
 	@read -p "Enter Username: " USERNAME; \
 	read -sp "Enter Password: " PASSWORD; \
 	echo ""; \
@@ -53,22 +67,16 @@ download-only:
 		echo "----------------------------------------"; \
 	fi
 	@echo "Process finished."
-# autowareのbuildのみ
-build-only:
-	@if ! docker compose ps autoware | grep -q "Up"; then \
-		echo "Starting autoware container..."; \
-		docker compose up -d autoware; \
-	else \
-		echo "Autoware container already running"; \
-	fi
-	@echo "Building workspace (this may take time and might fail with OOM)..."
-	@echo "If this fails, use the pre-built version with 'make setup'"
-	docker compose exec -T autoware bash -c "source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && timeout 1800 bash build_autoware.bash" || echo "Build failed or timed out"
 
-# 上記全部やっちゃう
-all:download-only build-only run-driver-zenoh run-autoware-only
-	@echo "All services started, showing logs..."
-	docker compose logs -f autoware driver zenoh
+# autowareのbuildのみ
+build:
+	docker compose up -d aic-build
+	docker compose logs -f aic-build
+
+# ダウンロードからビルド・実行まで全て行う
+all:download-only
+	docker compose up -d aic-build driver zenoh autoware
+	docker compose logs -f aic-build driver zenoh autoware
 
 # Stop all services
 stop-all:
