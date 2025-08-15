@@ -54,6 +54,7 @@ class SimplePurePursuit : public rclcpp::Node {
   const double max_acceleration_;
   const double min_acceleration_;
 
+  const double steering_dead_zone_rad_;
 
  private:
   void onTimer();

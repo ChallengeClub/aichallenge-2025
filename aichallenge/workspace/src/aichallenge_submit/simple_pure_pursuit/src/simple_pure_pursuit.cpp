@@ -25,7 +25,8 @@ SimplePurePursuit::SimplePurePursuit()
   external_target_vel_(declare_parameter<float>("external_target_vel", 0.0)),
   steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0)),
   max_acceleration_(declare_parameter<float>("max_acceleration", 3.0)),
-  min_acceleration_(declare_parameter<float>("min_acceleration", -5.0))
+  min_acceleration_(declare_parameter<float>("min_acceleration", -5.0)),
+  steering_dead_zone_rad_(declare_parameter<double>("steering_dead_zone_rad", 0.0))
 {
   pub_cmd_ = create_publisher<AckermannControlCommand>("output/control_cmd", 1);
   pub_raw_cmd_ = create_publisher<AckermannControlCommand>("output/raw_control_cmd", 1);
@@ -91,11 +92,12 @@ void SimplePurePursuit::onTimer()
     // calc lateral control
     //// calc lookahead distance
     double lookahead_distance = lookahead_gain_ * target_longitudinal_vel + lookahead_min_distance_;
+    const double yaw = tf2::getYaw(odometry_->pose.pose.orientation);
     //// calc center coordinate of rear wheel
     double rear_x = odometry_->pose.pose.position.x -
-                    wheel_base_ / 2.0 * std::cos(odometry_->pose.pose.orientation.z);
+                    wheel_base_ / 2.0 * std::cos(yaw);
     double rear_y = odometry_->pose.pose.position.y -
-                    wheel_base_ / 2.0 * std::sin(odometry_->pose.pose.orientation.z);
+                    wheel_base_ / 2.0 * std::sin(yaw);
     //// search lookahead point
     auto lookahead_point_itr = std::find_if(
       trajectory_->points.begin() + closet_traj_point_idx, trajectory_->points.end(),
@@ -118,10 +120,15 @@ void SimplePurePursuit::onTimer()
     pub_lookahead_point_->publish(lookahead_point_msg);
 
     // calc steering angle for lateral control
-    double alpha = std::atan2(lookahead_point_y - rear_y, lookahead_point_x - rear_x) -
-                   tf2::getYaw(odometry_->pose.pose.orientation);
+    double alpha =
+      std::atan2(lookahead_point_y - rear_y, lookahead_point_x - rear_x) - yaw;
     cmd.lateral.steering_tire_angle =
       steering_tire_angle_gain_ * std::atan2(2.0 * wheel_base_ * std::sin(alpha), lookahead_distance);
+
+    // Add steering dead zone
+    if (std::abs(cmd.lateral.steering_tire_angle) < steering_dead_zone_rad_) {
+      cmd.lateral.steering_tire_angle = 0.0;
+    }
   }
   pub_cmd_->publish(cmd);
   cmd.lateral.steering_tire_angle /=  steering_tire_angle_gain_;
