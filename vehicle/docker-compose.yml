@@ -1,6 +1,5 @@
 x-autoware-base: &autoware-base
   image: "aichallenge-2025-dev-${USER}"
-  stop_grace_period: 0.1s
   privileged: true
   network_mode: host
   environment:
@@ -65,10 +64,18 @@ services:
   autoware:
     <<: *autoware-base 
     container_name: "aic-2025-autoware"
+    stop_grace_period: 0.1s
     command: ["bash", "-c", "source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && exec bash run_autoware.bash vehicle"]
+
+  # rosbag record 
+  rosbag:
+    <<: *autoware-base 
+    container_name: "aic-2025-rosbag"
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && exec ros2 bag record -a"]
 
   # Aic-build service
   aic-build:
     <<: *autoware-base
     container_name: "aic-2025-build"
+    stop_grace_period: 0.1s
     command: ['bash', '-c', 'source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && timeout 1800 bash build_autoware.bash|| echo "Build failed or timed out"']

@@ -24,6 +24,11 @@ driver-zenoh:
 	docker compose up -d driver zenoh
 	docker compose logs -f driver zenoh
 
+# aicコンテナにてros2 bag record -a
+rosbag:
+	docker compose up -d rosbag
+	docker compose logs -f rosbag
+
 # Autowareとracing kartとzenohの起動
 run-full-system:
 	docker compose up -d autoware driver zenoh
@@ -75,9 +80,17 @@ build:
 
 # ダウンロードからビルド・実行まで全て行う
 all:download-only
-	docker compose up -d aic-build driver zenoh autoware
-	docker compose logs -f aic-build driver zenoh autoware
-
+	docker compose up -d aic-build driver zenoh autoware rosbag
+	docker compose logs -f aic-build driver zenoh autoware rosbag
+#それぞれのコンテナをstopする
+stop-autoware:
+	docker compose stop autoware
+stop-zenoh:
+	docker compose stop zenoh
+stop-driver:
+	docker compose stop driver
+stop-rosbag:
+	docker compose stop rosbag
 # Stop all services
 stop-all:
 	docker compose down
