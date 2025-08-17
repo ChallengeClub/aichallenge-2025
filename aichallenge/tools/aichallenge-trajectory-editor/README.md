@@ -52,6 +52,23 @@ pip install -r requirements.txt
 - editor
 
 ```bash
-cd aichallenge^trajectopry-editor
+cd aichallenge-trajectopry-editor
 ./cmd_line/csv_editor
 ```
+
+- converter
+
+  - デフォルトで、"../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm" を変換
+  - "../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm" が生成される
+
+    ```bash
+    cd aichallenge-trajectopry-editor
+    ./cmd_line/csv_from_osm
+    ```
+
+  - 引数指定で任意のファイルを変換
+
+    ```bash
+    cd aichallenge-trajectopry-editor
+    ./cmd_line/csv_from_osm (osmファイル) (lane.csvファイル)
+    ```

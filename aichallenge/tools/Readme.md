@@ -27,3 +27,19 @@ Docker内で実行してください。
 $ cd /aichallenge
 $ python3 tools/trajectory_raceline.py 
 ```
+
+## aichallenge-trajectory-editor
+
+経路編集ツールをモディファイしております
+
+### 主な機能
+
+- コースファイル(osm) から レーンファイル(csv) を作成 (csv_from_osm)
+- トラジェクトリファイル(csv)のGUI編集 (csv_editor)
+  - 速度ラベルの編集
+  - 曲線のスムーズ機能（あまりつかってない）
+  - 速度の振り直し（速度から自動調整）（最低、最高速度、加速度などの設定）
+
+###
+
+- [詳細はこちらの README.md へ](aichallenge-trajectory-editor/README.md)
