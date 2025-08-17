@@ -1,0 +1,10 @@
+#!/usr/bin/python3
+
+import os
+
+# このスクリプトのディレクトリを取得
+dir = os.path.dirname(os.path.abspath(__file__))
+# 一つ前のディレクトリを取得
+dir = os.path.dirname(dir)
+# editor.pyを実行
+os.system('python3 ' + dir + '/view/traj_viewer.py')
