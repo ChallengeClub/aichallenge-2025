@@ -7,4 +7,4 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # 一つ前のディレクトリを取得
 project_root = os.path.dirname(script_dir)
 # converter_from_osm.pyを実行
-os.system('python3 ' + project_root + '/converter_from_osm/converter_from_osm.py')
+os.system('python3 ' + project_root + '/converter_from_osm/osm-to-lane_csv.py')

@@ -1,12 +1,16 @@
+# OSM to lane CSV converter
 import xml.etree.ElementTree as ET
 import csv
 from collections import defaultdict, deque
+import argparse
 
-# osm_path = "aichallenge/workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm"
-# csv_path = "aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/lanelet2_map_osm.csv"
-
-osm_path = "aichallenge/workspace/src/aichallenge_submit/aichallenge_submit_launch/map/wide_lanelet2_map.osm"
-csv_path = "aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/wide_lanelet2_map_osm.csv"
+# コマンドライン引数の処理
+parser = argparse.ArgumentParser(description="Convert lanelet2 OSM to lane.csv format.")
+parser.add_argument("--osm_path", type=str, default="../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm", help="input OSM file path")
+parser.add_argument("--csv_path", type=str, default="../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm.csv", help="output CSV file path")
+args = parser.parse_args()
+osm_path = args.osm_path
+csv_path = args.csv_path
 
 tree = ET.parse(osm_path)
 root = tree.getroot()
@@ -104,4 +108,4 @@ with open(csv_path, "w", newline="", encoding="utf-8") as f:
         if None not in (lx, ly, rx, ry):
             writer.writerow([lx, ly, rx, ry])
 
-print("lanelet2_map_osm_loop.csv を出力しました")
+print(f"{csv_path} を出力しました")
