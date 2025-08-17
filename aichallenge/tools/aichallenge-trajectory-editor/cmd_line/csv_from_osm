@@ -6,5 +6,5 @@ import os
 script_dir = os.path.dirname(os.path.abspath(__file__))
 # 一つ前のディレクトリを取得
 project_root = os.path.dirname(script_dir)
-# editor.pyを実行
-os.system('python3 ' + project_root + '/editor/editor.py')
+# converter_from_osm.pyを実行
+os.system('python3 ' + project_root + '/converter_from_osm/converter_from_osm.py')

@@ -1,10 +1,9 @@
-#!/usr/bin/python3
-
+#!.venv/bin/python3
 import os
 
 # このスクリプトのディレクトリを取得
-dir = os.path.dirname(os.path.abspath(__file__))
+base_dir = os.path.dirname(os.path.abspath(__file__))
 # 一つ前のディレクトリを取得
-dir = os.path.dirname(dir)
+base_dir = os.path.dirname(base_dir)
 # editor.pyを実行
-os.system('python3 ' + dir + '/view/traj_viewer.py')
+os.system('python3 ' + base_dir + '/view/traj_viewer.py')

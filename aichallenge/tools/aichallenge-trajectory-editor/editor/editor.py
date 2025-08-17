@@ -7,8 +7,18 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.backend_bases import MouseButton
 import tkinter as tk
 from tkinter import filedialog
+from tkinter import messagebox
 import subprocess
 
+# ROS 2関連のインポート
+try:
+    import rclpy
+    from rclpy.node import Node
+    from autoware_auto_planning_msgs.msg import Trajectory, TrajectoryPoint
+    from geometry_msgs.msg import Pose, Point, Quaternion
+    ROS2_AVAILABLE = True
+except ImportError:
+    ROS2_AVAILABLE = False
 
 
 class PlotTool:
@@ -35,27 +45,27 @@ class PlotTool:
 
         # 点追加のチェックボタン
         self.add_point_var = tk.BooleanVar(value=False)  # 点追加のモードを管理する変数
-        self.add_point_checkbutton = tk.Checkbutton(self.frame, text="Add Point", variable=self.add_point_var, command=self.set_add_point)
+        self.add_point_checkbutton = tk.Checkbutton(self.frame, text="Add Point", variable=self.add_point_var, command=lambda: self.set_mode(self.add_point_var))
         self.add_point_checkbutton.grid(row=0, column=3, padx=5, pady=5)
 
         # 点移動のチェックボタン
         self.move_point_var = tk.BooleanVar(value=False)
-        self.move_point_checkbutton = tk.Checkbutton(self.frame, text="Move Point", variable=self.move_point_var, command=self.set_move_point)
+        self.move_point_checkbutton = tk.Checkbutton(self.frame, text="Move Point", variable=self.move_point_var, command=lambda: self.set_mode(self.move_point_var))
         self.move_point_checkbutton.grid(row=0, column=4, padx=5, pady=5)
 
         # 点削除のチェックボタン
         self.delete_point_var = tk.BooleanVar(value=False)
-        self.delete_point_checkbutton = tk.Checkbutton(self.frame, text="Delete Point", variable=self.delete_point_var, command=self.set_delete_point)
+        self.delete_point_checkbutton = tk.Checkbutton(self.frame, text="Delete Point", variable=self.delete_point_var, command=lambda: self.set_mode(self.delete_point_var))
         self.delete_point_checkbutton.grid(row=0, column=5, padx=5, pady=5)
 
         # ラベル編集のチェックボタン
         self.edit_label_var = tk.BooleanVar(value=False)
-        self.edit_label_checkbutton = tk.Checkbutton(self.frame, text="Edit a Label", variable=self.edit_label_var, command=self.set_edit_label)
+        self.edit_label_checkbutton = tk.Checkbutton(self.frame, text="Edit a Label", variable=self.edit_label_var, command=lambda: self.set_mode(self.edit_label_var))
         self.edit_label_checkbutton.grid(row=0, column=6, padx=5, pady=5)
 
         # ラベル一括編集のチェックボタン
         self.calculate_speed_var = tk.BooleanVar(value=False)
-        self.calculate_speed_checkbutton = tk.Checkbutton(self.frame, text="Edit Labels", variable=self.calculate_speed_var, command=self.set_edit_labels)
+        self.calculate_speed_checkbutton = tk.Checkbutton(self.frame, text="Edit Labels", variable=self.calculate_speed_var, command=lambda: self.set_mode(self.calculate_speed_var))
         self.calculate_speed_checkbutton.grid(row=0, column=7, padx=5, pady=5)
 
         # CSVファイルの保存ボタン
@@ -76,12 +86,24 @@ class PlotTool:
         self.dark_mode_checkbutton.grid(row=0, column=11, padx=5, pady=5)
 
         self.move_selected_var = tk.BooleanVar(value=False)
-        self.move_selected_checkbutton = tk.Checkbutton(self.frame, text="Move Selected Points", variable=self.move_selected_var, command=self.set_move_selected)
+        self.move_selected_checkbutton = tk.Checkbutton(self.frame, text="Move Selected Points", variable=self.move_selected_var, command=lambda: self.set_mode(self.move_selected_var))
         self.move_selected_checkbutton.grid(row=0, column=12, padx=5, pady=5)
 
         self.straight_line_var = tk.BooleanVar(value=False)
-        self.straight_line_checkbutton = tk.Checkbutton(self.frame, text="Straight Line", variable=self.straight_line_var, command=self.set_straight_line)
+        self.straight_line_checkbutton = tk.Checkbutton(self.frame, text="Straight Line", variable=self.straight_line_var, command=lambda: self.set_mode(self.straight_line_var))
         self.straight_line_checkbutton.grid(row=0, column=13, padx=5, pady=5)
+
+        # スムージングボタン
+        self.smooth_button = tk.Button(self.frame, text="Smooth", command=self.smooth_trajectory)
+        self.smooth_button.grid(row=0, column=14, padx=5, pady=5)
+
+        # 速度プロファイル生成ボタン
+        self.generate_speed_button = tk.Button(self.frame, text="Generate Speed", command=self.generate_speed_profile)
+        self.generate_speed_button.grid(row=0, column=15, padx=5, pady=5)
+
+        # ROS 2 Publisherボタン
+        self.publish_ros_button = tk.Button(self.frame, text="Publish to ROS", command=self.publish_ros_trajectory, state=tk.DISABLED)
+        self.publish_ros_button.grid(row=0, column=16, padx=5, pady=5)
 
         # オプションメニュー
         self.options_frame = tk.Frame(master)
@@ -123,6 +145,41 @@ class PlotTool:
         self.multiply_label_entry.grid(row=1, column=5, padx=5, pady=5)
         self.multiply_button = tk.Button(self.options_frame, text="Multiply", command=self.multiply_label)
         self.multiply_button.grid(row=1, column=6, padx=5, pady=5)
+
+        # スムージングのウィンドウサイズ
+        self.smoothing_window_size = tk.IntVar(value=5)
+        tk.Label(self.options_frame, text="Smoothing Window:").grid(row=2, column=0, padx=5, pady=5)
+        self.smoothing_window_entry = tk.Entry(self.options_frame, textvariable=self.smoothing_window_size)
+        self.smoothing_window_entry.grid(row=2, column=1, padx=5, pady=5)
+
+        # 速度プロファイル生成のパラメータ
+        tk.Label(self.options_frame, text="Max Speed (km/h):").grid(row=3, column=0, padx=5, pady=5)
+        self.max_speed_var = tk.DoubleVar(value=50.0)
+        self.max_speed_entry = tk.Entry(self.options_frame, textvariable=self.max_speed_var)
+        self.max_speed_entry.grid(row=3, column=1, padx=5, pady=5)
+
+        tk.Label(self.options_frame, text="Friction Coeff (μ):").grid(row=3, column=2, padx=5, pady=5)
+        self.friction_coeff_var = tk.DoubleVar(value=0.8)
+        self.friction_coeff_entry = tk.Entry(self.options_frame, textvariable=self.friction_coeff_var)
+        self.friction_coeff_entry.grid(row=3, column=3, padx=5, pady=5)
+
+        tk.Label(self.options_frame, text="Min Speed (km/h):").grid(row=3, column=4, padx=5, pady=5)
+        self.min_speed_var = tk.DoubleVar(value=30.0)
+        self.min_speed_entry = tk.Entry(self.options_frame, textvariable=self.min_speed_var)
+        self.min_speed_entry.grid(row=3, column=5, padx=5, pady=5)
+
+        # 加速度とジャーク（スムージング）のパラメータ
+        tk.Label(self.options_frame, text="Max Accel (m/s²):").grid(row=4, column=0, padx=5, pady=5)
+        self.max_accel_var = tk.DoubleVar(value=2.0)
+        self.max_accel_entry = tk.Entry(self.options_frame, textvariable=self.max_accel_var)
+        self.max_accel_entry.grid(row=4, column=1, padx=5, pady=5)
+
+        tk.Label(self.options_frame, text="Speed Smooth Window:").grid(row=4, column=2, padx=5, pady=5)
+        self.speed_smooth_window_var = tk.IntVar(value=3)
+        self.speed_smooth_window_entry = tk.Entry(self.options_frame, textvariable=self.speed_smooth_window_var)
+        self.speed_smooth_window_entry.grid(row=4, column=3, padx=5, pady=5)
+
+
 
         # 変数の変更を監視
         self.initial_label_value.trace("w", self.on_option_change)
@@ -180,65 +237,42 @@ class PlotTool:
         self.default_map_path = self.parent_dir + '/csv/lane.csv'
         self.load_map(self.default_map_path)
 
-    def set_add_point(self):
-        self.move_point_var.set(False)
-        self.edit_label_var.set(False)
-        self.delete_point_var.set(False)
-        self.calculate_speed_var.set(False)
-        self.move_selected_var.set(False)
-        self.straight_line_var.set(False)
+        # ROS 2の初期化
+        self.node = None
+        if ROS2_AVAILABLE:
+            try:
+                rclpy.init()
+                self.node = Node('trajectory_editor_node')
+                self.traj_publisher = self.node.create_publisher(Trajectory, '/planning/scenario_planning/trajectory', 10)
+                self.publish_ros_button.config(state=tk.NORMAL)
+                self.master.after(100, self.ros_spin) # 100msごとにspin
+                self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
+                print("ROS 2 node initialized successfully.")
+            except Exception as e:
+                messagebox.showerror("ROS 2 Error", f"Failed to initialize ROS 2 node: {e}")
+                if self.node:
+                    self.node.destroy_node()
+                if rclpy.ok():
+                    rclpy.shutdown()
+                self.node = None
+        else:
+            print("rclpy or Autoware messages not found. ROS 2 features are disabled.")
 
-    def set_move_point(self):
-        self.add_point_var.set(False)
-        self.edit_label_var.set(False)
-        self.delete_point_var.set(False)
-        self.calculate_speed_var.set(False)
-        self.move_selected_var.set(False)
-        self.straight_line_var.set(False)
+    def set_mode(self, active_var):
+        """A unified method to handle mode changes."""
+        if not active_var.get():
+            return
 
-    def set_edit_label(self):
-        self.add_point_var.set(False)
-        self.move_point_var.set(False)
-        self.delete_point_var.set(False)
-        self.calculate_speed_var.set(False)
-        self.move_selected_var.set(False)
-        self.straight_line_var.set(False)
+        all_modes = [
+            self.add_point_var, self.move_point_var, self.delete_point_var,
+            self.edit_label_var, self.calculate_speed_var, self.move_selected_var,
+            self.straight_line_var
+        ]
+        for mode_var in all_modes:
+            if mode_var is not active_var:
+                mode_var.set(False)
 
-    def set_delete_point(self):
-        self.add_point_var.set(False)
-        self.move_point_var.set(False)
-        self.edit_label_var.set(False)
-        self.calculate_speed_var.set(False)
-        self.move_selected_var.set(False)
-        self.straight_line_var.set(False)
-
-    def set_edit_labels(self):
-        self.add_point_var.set(False)
-        self.move_point_var.set(False)
-        self.edit_label_var.set(False)
-        self.delete_point_var.set(False)
-        self.move_selected_var.set(False)
-        self.straight_line_var.set(False)
-    
-    def set_move_selected(self):
-        self.add_point_var.set(False)
-        self.move_point_var.set(False)
-        self.edit_label_var.set(False)
-        self.delete_point_var.set(False)
-        self.calculate_speed_var.set(False)
-        self.straight_line_var.set(False)
-        self.selected_range_start = None
-        self.selected_range_end = None
-        self.selected_range_points = []
-        self.plot_data()
-    
-    def set_straight_line(self):
-        self.add_point_var.set(False)
-        self.move_point_var.set(False)
-        self.edit_label_var.set(False)
-        self.delete_point_var.set(False)
-        self.calculate_speed_var.set(False)
-        self.move_selected_var.set(False)
+        # Reset range selection when mode changes
         self.selected_range_start = None
         self.selected_range_end = None
         self.selected_range_points = []
@@ -408,7 +442,7 @@ class PlotTool:
         # チェックボタンの状態に応じてラベルを表示
         if self.show_labels_var.get():
             for i in range(len(self.x)):
-                txt = self.ax.text(self.x[i], self.y[i], str(int(self.ms_to_kmh(self.labels[i]))), fontsize=12, ha='right', color=label_color)
+                txt = self.ax.text(self.x[i], self.y[i], f"{self.ms_to_kmh(self.labels[i]):.2f}", fontsize=12, ha='right', color=label_color)
                 self.texts.append(txt)
 
         # マップをプロット
@@ -654,7 +688,7 @@ class PlotTool:
 
     def edit_label(self, point_idx):
         # ポイントのラベルをダブルクリックで編集
-        new_label = tk.simpledialog.askstring("Edit Label", f"Edit label for point {point_idx}", initialvalue=self.labels[point_idx])
+        new_label = tk.simpledialog.askstring("Edit Label", f"Edit label for point {point_idx}", initialvalue=self.ms_to_kmh(self.labels[point_idx]))
         if new_label is not None:
             self.labels[point_idx] = self.kmh_to_ms(float(new_label))
             self.plot_data()
@@ -706,6 +740,58 @@ class PlotTool:
     def kmh_to_ms(self, kmh):
         return kmh / 3.6
 
+    def publish_ros_trajectory(self):
+        if not self.node or not self.x:
+            messagebox.showwarning("Warning", "ROS 2 node is not running or no trajectory data.")
+            return
+
+        # 軌跡データを最新の状態に更新
+        self.calc_quaternion()
+
+        # Trajectoryメッセージを作成
+        traj_msg = Trajectory()
+        traj_msg.header.stamp = self.node.get_clock().now().to_msg()
+        traj_msg.header.frame_id = "map"
+
+        for i in range(len(self.x)):
+            point = TrajectoryPoint()
+            
+            # Poseを設定
+            pose = Pose()
+            pose.position.x = float(self.x[i])
+            pose.position.y = float(self.y[i])
+            pose.position.z = float(self.z[i]) if i < len(self.z) else 0.0
+            
+            pose.orientation.w = float(self.w_q[i])
+            pose.orientation.x = float(self.x_q[i])
+            pose.orientation.y = float(self.y_q[i])
+            pose.orientation.z = float(self.z_q[i])
+            
+            point.pose = pose
+            
+            # 速度を設定
+            point.longitudinal_velocity_mps = float(self.labels[i])
+            
+            traj_msg.points.append(point)
+
+        # 最後の点を追加してループを閉じる
+        if len(self.x) > 1 and (self.x[0] != self.x[-1] or self.y[0] != self.y[-1]):
+            traj_msg.points.append(traj_msg.points[0])
+
+        self.traj_publisher.publish(traj_msg)
+        messagebox.showinfo("Info", f"Trajectory published to {self.traj_publisher.topic_name}")
+
+    def ros_spin(self):
+        if self.node and rclpy.ok():
+            rclpy.spin_once(self.node, timeout_sec=0.01)
+            self.master.after(100, self.ros_spin)
+
+    def on_closing(self):
+        if self.node:
+            self.node.destroy_node()
+            rclpy.shutdown()
+        self.master.destroy()
+
 
     def euler_from_quaternion(self, quaternion):
         """
@@ -752,8 +838,168 @@ class PlotTool:
 
         return q
 
+    def generate_speed_profile(self):
+        """
+        軌跡の曲率、加速度、ジャーク制約に基づいて滑らかな速度プロファイルを自動生成する
+        """
+        if len(self.x) < 3:
+            tk.messagebox.showwarning("Warning", "Need at least 3 points to generate speed profile.")
+            return
+
+        try:
+            max_speed_kmh = self.max_speed_var.get()
+            min_speed_kmh = self.min_speed_var.get()
+            friction_coeff = self.friction_coeff_var.get()
+            max_accel = self.max_accel_var.get()
+            speed_smooth_window = self.speed_smooth_window_var.get()
+            if max_speed_kmh <= 0 or min_speed_kmh < 0 or friction_coeff <= 0 or max_accel <= 0:
+                tk.messagebox.showwarning("Warning", "Parameters must be positive (Min Speed can be 0).")
+                return
+        except (tk.TclError, ValueError):
+            tk.messagebox.showerror("Error", "Invalid parameters for speed generation.")
+            return
+
+        num_points = len(self.x)
+        max_speed_ms = self.kmh_to_ms(max_speed_kmh)
+        g = 9.81  # 重力加速度
+
+        # ステップ0: 曲率ベースの目標速度(上限)を計算
+        curvatures = self.calculate_curvatures()
+        target_speeds = []
+        for i in range(num_points):
+            kappa = curvatures[i]
+            if kappa < 1e-6:  # ほぼ直線の場合
+                target_speed = max_speed_ms
+            else:
+                radius = 1.0 / kappa
+                # v = sqrt(μ * g * R)
+                target_speed = math.sqrt(friction_coeff * g * radius)            
+            target_speeds.append(min(target_speed, max_speed_ms))
+
+        # ステップ0.5: 点間距離を計算
+        distances = self.calculate_distances()
+
+        # ステップ1: 前方パス (加速度制約)
+        # 始点の速度は曲率ベースの速度で初期化
+        speeds = list(target_speeds)
+        for _ in range(2): # 計算を安定させるために2周実行
+            for i in range(num_points):
+                current_idx = i
+                prev_idx = (i - 1 + num_points) % num_points
+                dist = distances[prev_idx]
+                if dist < 1e-6: continue
+                v_prev = speeds[prev_idx]
+                v_accel_limit = math.sqrt(v_prev**2 + 2 * max_accel * dist)
+                speeds[current_idx] = min(speeds[current_idx], v_accel_limit)
+
+        # ステップ2: 後方パス (減速度制約)
+        for _ in range(2): # 計算を安定させるために2周実行
+            for i in range(num_points):
+                current_idx = (num_points - 1 - i) % num_points
+                next_idx = (current_idx + 1) % num_points
+                dist = distances[current_idx]
+                if dist < 1e-6: continue
+                v_next = speeds[next_idx]
+                v_decel_limit = math.sqrt(v_next**2 + 2 * max_accel * dist)
+                speeds[current_idx] = min(speeds[current_idx], v_decel_limit)
+
+        # ステップ3: ジャークを考慮したスムージング (速度プロファイルへのフィルタ適用)
+        if speed_smooth_window >= 3:
+            smoothed_speeds = self.moving_average(speeds, speed_smooth_window)
+            # フィルタ適用後に制約を再度満たすようにクリッピング
+            for i in range(num_points):
+                self.labels[i] = min(smoothed_speeds[i], target_speeds[i])
+        else:
+            self.labels = speeds
+
+        # ステップ4: 最低速度を適用
+        min_speed_ms = self.kmh_to_ms(min_speed_kmh)
+        for i in range(num_points):
+            self.labels[i] = max(self.labels[i], min_speed_ms)
+
+        self.plot_data()
+
+    def calculate_distances(self):
+        distances = []
+        num_points = len(self.x)
+        if num_points < 1: return []
+        for i in range(num_points):
+            p2_idx = (i + 1) % num_points
+            distances.append(math.hypot(self.x[p2_idx] - self.x[i], self.y[p2_idx] - self.y[i]))
+        return distances
+
+    def calculate_curvatures(self):
+        """
+        軌跡の各点におけるMenger曲率を計算する
+        """
+        curvatures = []
+        num_points = len(self.x)
+        if num_points < 3:
+            return [0.0] * num_points
+
+        for i in range(num_points):
+            # ループする軌跡のため、前後の点を剰余演算で取得
+            p1_idx = (i - 1 + num_points) % num_points
+            p2_idx = i
+            p3_idx = (i + 1) % num_points
+
+            x1, y1 = self.x[p1_idx], self.y[p1_idx]
+            x2, y2 = self.x[p2_idx], self.y[p2_idx]
+            x3, y3 = self.x[p3_idx], self.y[p3_idx]
+
+            # Menger曲率の公式: κ = 4 * Area / (a * b * c)
+            area = 0.5 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
+            a = math.hypot(x2 - x3, y2 - y3)
+            b = math.hypot(x1 - x3, y1 - y3)
+            c = math.hypot(x1 - x2, y1 - y2)
+            denominator = a * b * c
+            curvatures.append(4.0 * abs(area) / denominator if denominator > 1e-9 else 0.0)
+        return curvatures
+
+    def smooth_trajectory(self):
+        """
+        軌跡データを移動平均法でスムージングする
+        """
+        if not self.x or not self.y:
+            return
+
+        try:
+            window_size = self.smoothing_window_size.get()
+            if window_size < 2 or window_size % 2 == 0:
+                # ウィンドウサイズは2以上かつ奇数である必要がある
+                tk.messagebox.showwarning("Warning", "Smoothing window size must be an odd number greater than 1.")
+                return
+        except (tk.TclError, ValueError):
+            tk.messagebox.showerror("Error", "Invalid smoothing window size.")
+            self.smoothing_window_size.set(5)
+            return
+
+        # 軌跡データはループしているので、'wrap'モードでパディングする
+        self.x = self.moving_average(self.x, window_size)
+        self.y = self.moving_average(self.y, window_size)
+
+        self.plot_data()
+
+    def moving_average(self, data, window_size):
+        """
+        巡回するデータ（軌跡など）に対して移動平均を適用する
+        """
+        if len(data) < window_size:
+            return np.array(data)
+
+        data_arr = np.array(data)
+        pad_width = (window_size - 1) // 2
+        padded_data = np.pad(data_arr, pad_width, mode='wrap')
+        weights = np.repeat(1.0, window_size) / window_size
+        smoothed_data = np.convolve(padded_data, weights, 'valid')
+        return smoothed_data.tolist()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     plot_tool = PlotTool(root)
+    # on_closingメソッドが設定されている場合、ウィンドウが閉じる際に
+    # 適切にシャットダウン処理が行われる。
+    # ROSが利用できない場合は、on_closingは設定されないが、
+    # master.quitが呼ばれるので問題ない。
     root.mainloop()

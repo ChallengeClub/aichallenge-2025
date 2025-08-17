@@ -30,7 +30,7 @@ def euler_from_quaternion(quaternion):
 def quaternion_from_euler(roll, pitch, yaw):
     """
     Converts euler roll, pitch, yaw to quaternion (w in last place)
-    quat = [x, y, z, w]
+    quat = [w, x, y, z]
     Bellow should be replaced when porting for ROS 2 Python tf_conversions is done.
     """
     cy = math.cos(yaw * 0.5)
@@ -79,13 +79,14 @@ def convert_raceline_to_traj(data):
         y.append(data.iloc[i, 2])
         psi_rad.append(data.iloc[i, 3])
         speed.append(data.iloc[i, 5])
-    
+
     quat = []
     for i in range(len(psi_rad)):
         q = quaternion_from_euler(0, 0, psi_rad[i])
         quat.append(q)
     for i in range(len(x)):
-        traj_data.append([x[i], y[i], 0, quat[i][0], quat[i][1], quat[i][2], quat[i][3], speed[i]])
+        # quat is [w, x, y, z], header is x_quat, y_quat, z_quat, w_quat
+        traj_data.append([x[i], y[i], 0, quat[i][1], quat[i][2], quat[i][3], quat[i][0], speed[i]])
     return traj_data
 
 
