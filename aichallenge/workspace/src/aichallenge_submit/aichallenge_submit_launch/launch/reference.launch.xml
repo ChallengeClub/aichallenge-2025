@@ -118,7 +118,7 @@
 
       <!-- Customizable -->
       <node pkg="simple_trajectory_generator" exec="simple_trajectory_generator_node" name="simple_trajectory_generator" output="screen">
-            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_15km.csv"/>
+            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/fix_6.csv"/>
             <param name="z" value="6.5"/>
       </node>
       
@@ -126,15 +126,15 @@
   </group>
 
   <!-- Pure Pursuit -->
-  <let name="steering_tire_angle_gain_var" value="1.8" if="$(var simulation)"/>
+  <let name="steering_tire_angle_gain_var" value="1.3" if="$(var simulation)"/>
   <let name="steering_tire_angle_gain_var" value="1.639" unless="$(var simulation)"/>
 
   <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
     <param name="use_external_target_vel" value="true"/>
     <param name="external_target_vel" value="20.0"/>
-    <param name="lookahead_gain" value="0.35"/>
-    <param name="lookahead_min_distance" value="0.2"/>
-    <param name="speed_proportional_gain" value="100.0"/>
+    <param name="lookahead_gain" value="0.4"/>
+    <param name="lookahead_min_distance" value="0.5"/>
+    <param name="speed_proportional_gain" value="1000.0"/>
     <param name="steering_tire_angle_gain" value="$(var steering_tire_angle_gain_var)"/>
 
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
