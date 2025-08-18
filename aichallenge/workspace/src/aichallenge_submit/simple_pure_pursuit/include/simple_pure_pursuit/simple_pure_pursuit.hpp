@@ -56,6 +56,12 @@ class SimplePurePursuit : public rclcpp::Node {
 
   const double steering_dead_zone_rad_;
 
+  // 速度リミッタ用パラメータ（初期化リスト順と一致させるためdead_zoneの後ろに移動）
+  const double speed_limit1_;
+  const double accel_limit1_;
+  const double speed_limit2_;
+  const double accel_limit2_;
+
  private:
   void onTimer();
   bool subscribeMessageAvailable();

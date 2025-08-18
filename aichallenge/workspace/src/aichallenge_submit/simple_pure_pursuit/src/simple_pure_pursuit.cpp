@@ -26,7 +26,11 @@ SimplePurePursuit::SimplePurePursuit()
   steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0)),
   max_acceleration_(declare_parameter<float>("max_acceleration", 3.0)),
   min_acceleration_(declare_parameter<float>("min_acceleration", -5.0)),
-  steering_dead_zone_rad_(declare_parameter<double>("steering_dead_zone_rad", 0.0))
+  steering_dead_zone_rad_(declare_parameter<double>("steering_dead_zone_rad", 0.0)),
+  speed_limit1_(declare_parameter<double>("speed_limit1", 34.60)),
+  accel_limit1_(declare_parameter<double>("accel_limit1", -0.09)),
+  speed_limit2_(declare_parameter<double>("speed_limit2", 34.95)),
+  accel_limit2_(declare_parameter<double>("accel_limit2", -0.2))
 {
   pub_cmd_ = create_publisher<AckermannControlCommand>("output/control_cmd", 1);
   pub_raw_cmd_ = create_publisher<AckermannControlCommand>("output/raw_control_cmd", 1);
@@ -83,12 +87,21 @@ void SimplePurePursuit::onTimer()
       use_external_target_vel_ ? external_target_vel_ : closet_traj_point.longitudinal_velocity_mps;
     double current_longitudinal_vel = odometry_->twist.twist.linear.x;
 
+
     cmd.longitudinal.speed = target_longitudinal_vel;
     const double desired_acceleration =
       speed_proportional_gain_ * (target_longitudinal_vel - current_longitudinal_vel);
     cmd.longitudinal.acceleration =
       std::clamp(desired_acceleration, min_acceleration_, max_acceleration_);
 
+    // 速度リミッタ（パラメータ化）
+    if (current_longitudinal_vel > speed_limit1_/3.6) {
+      cmd.longitudinal.speed = speed_limit1_/3.6;
+      cmd.longitudinal.acceleration = accel_limit1_;
+    } else if (current_longitudinal_vel > speed_limit2_/3.6) {
+      cmd.longitudinal.speed = speed_limit2_/3.6;
+      cmd.longitudinal.acceleration = accel_limit2_;
+    }
     // calc lateral control
     //// calc lookahead distance
     double lookahead_distance = lookahead_gain_ * target_longitudinal_vel + lookahead_min_distance_;
