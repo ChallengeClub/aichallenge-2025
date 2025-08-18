@@ -49,14 +49,15 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-- editor
+- csv editor
 
 ```bash
 cd aichallenge-trajectopry-editor
+source .venv/bin/activate
 ./cmd_line/csv_editor
 ```
 
-- converter
+- csv converter from osm
 
   - デフォルトで、"../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm" を変換
   - "../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm" が生成される
