@@ -23,6 +23,15 @@ def create_min_time(data):
     return min(laps)
 
 
+def create_max_velocity(data):
+    velocities = data.get("velocities", [])
+    if not velocities:
+        return None
+
+    speeds = [numpy.linalg.norm([v["x"], v["y"], v["z"]]) for v in velocities]
+    return max(speeds) if speeds else None
+
+
 def create_max_jerk(data, dt, ws):
     if not data.get("velocities"):
         return None
@@ -41,7 +50,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("hz", type=float)
 parser.add_argument("ws", type=int)
 parser.add_argument("--input", default="result-details.json")
-parser.add_argument("--output", default="result-summary.json")
+parser.add_argument("--output", default="result-summary_isshy.json")
 
 args = parser.parse_args()
 dt = 1.0 / args.hz
@@ -51,12 +60,22 @@ try:
     with open(args.input) as fp:
         details = json.load(fp)
 except (FileNotFoundError, json.JSONDecodeError):
+    # Handle cases where the file is missing or empty/corrupted
     details = {}
+
+max_velocity_mps = create_max_velocity(details)
+max_velocity_kmph = max_velocity_mps * 3.6 if max_velocity_mps is not None else None
 
 summary = {
     "laps": create_laps(details),
     "min_time": create_min_time(details),
-    #"max_jerk": create_max_jerk(details, dt, ws),
+    "max_velocity_mps": max_velocity_mps,
+    "max_velocity_kmph": max_velocity_kmph,
+    "max_jerk": create_max_jerk(details, dt, ws),
+    "max_longitudinal_acceleration": details.get("max_longitudinal_acceleration"),
+    "min_longitudinal_acceleration": details.get("min_longitudinal_acceleration"),
+    "max_lateral_acceleration": details.get("max_lateral_acceleration"),
+    "min_lateral_acceleration": details.get("min_lateral_acceleration"),
 }
 
 with open(args.output, "w") as fp:

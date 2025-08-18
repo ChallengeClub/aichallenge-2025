@@ -113,7 +113,8 @@ cleanup() {
         python3 /aichallenge/workspace/src/aichallenge_system/script/motion_analytics.py --input rosbag2_autoware --output . --save-details
         # Convert result after motion_analytics creates the details file
         echo "Convert result"
-        python3 /aichallenge/workspace/src/aichallenge_system/script/result-converter.py 60 11 --input result-details-from-bag.json
+        python3 /aichallenge/workspace/src/aichallenge_system/script/result-converter.py 60 11
+        python3 /aichallenge/workspace/src/aichallenge_system/script/result-converter_isshy.py 60 11 --input result-details-from-bag.json
 
         tar -czf rosbag2_autoware.tar.gz rosbag2_autoware
         rm -rf rosbag2_autoware
