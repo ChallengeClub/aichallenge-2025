@@ -82,12 +82,13 @@ void SpeedDisplay::drawSpeedDisplay(
 {
   QFont referenceFont("Quicksand", 80, QFont::Bold);
   painter.setFont(referenceFont);
-  QRect referenceRect = painter.fontMetrics().boundingRect("88");
+  // 4文字分の幅（例: "88.88"）で枠を計算
+  QRect referenceRect = painter.fontMetrics().boundingRect("88.88");
   QPointF referencePos(
     backgroundRect.width() / 2.0 - referenceRect.width() / 2.0 - 5.0,
     backgroundRect.height() / 2.0);
 
-  QString speedNumber = QString::number(current_speed_, 'f', 0);
+  QString speedNumber = QString::number(current_speed_, 'f', 2);
   int fontSize = 40;
   QFont speedFont("Quicksand", fontSize);
   painter.setFont(speedFont);
