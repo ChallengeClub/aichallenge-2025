@@ -73,3 +73,32 @@ source .venv/bin/activate
     cd aichallenge-trajectopry-editor
     ./cmd_line/csv_from_osm (osmファイル) (lane.csvファイル)
     ```
+
+### 経路設計の考え方(isshy的な)
+
+- 加速優先ライン（次の直線で最高速を稼ぐ）
+- ステアはブレーキと考え、35kphの世界ではブレーキ無しで設計し、最後に調整
+  - 現在の加減速制御に対する司令は難しい
+- できるだけニュートラルステアで直進加速
+- コーナーのクリッピングポイントを目指してカーブ経路
+  - 第一コーナーは１周目の車速が低いのでマージンは多めに取る
+    - 周回数による経路選択をすればもう少し攻めることが可能になる
+- 複合コーナーは一つのコーナーと考えて経路設計
+- インベタで走るか、減速を避けて大きく回るかはコーナーによる
+- コーナー終了時に経路追従で左右にステアが振れてしまうので揺れ無いよう経路点を打つ
+- 乱数要素で同一の経路は走れないのである程度のマージンは必要
+
+#### 登録経路ファイルについて
+
+- simple_pure_pursuit の初期状態での最速
+  - aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/raceline_awsim_isshy_35kph_11.csv
+- simple_pure_pursuit に速度リミッタを入れた状態の最速経路
+  - aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/raceline_awsim_isshy_35kph_12.csv
+
+### 経路追従に対して
+
+- 経路点群ではなく、目標点だけの経路追従にしたい
+- 目標点までの直進、目標点までの旋回 の繰り返しとする
+- 減速が必要な場合、アクセルOFFとブレーキの使い方は定義したい
+- システムとしてアクセルとブレーキの同時踏みが許可されているなら制御も変わる
+  - おそらくブレーキONでアクセルOFFだろう。実車に乗ればわかる。  
