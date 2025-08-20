@@ -148,7 +148,7 @@ void SimplePurePursuit::onTimer()
     }
 
 
-    atan2result = pow(std::abs(atan2result), 1.3) * (std::abs(atan2result) / atan2result) * 2;
+    atan2result = pow(std::abs(atan2result), 1.35) * (std::abs(atan2result) / atan2result) * 2;
 
     cmd.lateral.steering_tire_angle =
       steering_tire_angle_gain_ * atan2result;
