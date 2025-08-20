@@ -142,7 +142,7 @@
     <!-- 目標加速度 = speed_proportional_gain × (目標速度 - 現在の車両速度) -->
     <param name="max_acceleration" value="3.0"/>
     <param name="min_acceleration" value="-5.0"/>
-    <!-- <param name="steering_tire_angle_gain" value="$(var steering_tire_angle_gain_var)"/> -->
+    <param name="steering_tire_angle_gain" value="$(var steering_tire_angle_gain_var)"/>
     <!-- <param name="steering_tire_angle_gain" value="0.90"/> -->
     <param name="steering_dead_zone_rad" value="0.00"/> <!-- 0.01 rad is about 0.57 deg -->
 
