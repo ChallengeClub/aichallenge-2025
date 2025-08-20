@@ -141,11 +141,16 @@ cleanup() {
 }
 
 move_window() {
-    local has_gpu
+    echo "Move window"
+
+    local has_gpu has_awsim has_rviz
     has_gpu=$(command -v nvidia-smi >/dev/null && echo 1 || echo 0)
 
-    while true; do
-        local has_awsim has_rviz
+    # Add timeout to prevent infinite hanging
+    local timeout=60 # 60 seconds timeout
+    local elapsed=0
+
+    while [ $elapsed -lt $timeout ]; do
         has_awsim=$(wmctrl -l | grep -q "AWSIM" && echo 1 || echo 0)
         has_rviz=$(wmctrl -l | grep -q "RViz" && echo 1 || echo 0)
 
@@ -153,8 +158,20 @@ move_window() {
             break
         fi
         sleep 1
+        ((elapsed++))
+        echo "Move window: $elapsed seconds elapsed"
     done
-    echo "AWSIMとRVizのウィンドウが見つかりました"
+
+    if [ $elapsed -ge $timeout ]; then
+        echo "WARNING: Timeout waiting for AWSIM/RViz windows after ${timeout} seconds"
+        echo "AWSIM window found: $has_awsim"
+        echo "RViz window found: $has_rviz"
+        echo "GPU available: $has_gpu"
+        echo "Continuing without window positioning..."
+        return 1
+    fi
+
+    echo "AWSIM and RViz windows found"
     # Move windows
     wmctrl -a "RViz" && wmctrl -r "RViz" -e 0,0,0,1920,1043
     sleep 1
@@ -232,6 +249,13 @@ echo "ROS Bag PID: $PID_ROSBAG"
 echo "$PID_ROSBAG" >>"$PID_FILE"
 # recursively get child processes
 get_child_pids "$PID_ROSBAG"
+# Wait a moment for rosbag to initialize and verify it's running
+sleep 2
+if ! kill -0 "$PID_ROSBAG" 2>/dev/null; then
+    echo "Warning: Rosbag process is not running"
+else
+    echo "Rosbag recording started successfully"
+fi
 
 # Wait for AWSIM to finish (this is the main process we're waiting for)
 wait "$PID_AWSIM"

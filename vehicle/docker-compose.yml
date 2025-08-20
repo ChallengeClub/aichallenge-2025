@@ -1,0 +1,81 @@
+x-autoware-base: &autoware-base
+  image: "aichallenge-2025-dev-${USER}"
+  privileged: true
+  network_mode: host
+  environment:
+    - DISPLAY=${DISPLAY}
+    - USER=${USER}
+    - ROS_DISTRO=humble
+  volumes:
+    - ../output:/output
+    - ../aichallenge:/aichallenge
+    - ../remote:/remote
+    - ./:/vehicle
+    - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    - /dev/dri:/dev/dri
+  devices:
+    - /dev/dri
+  working_dir: /aichallenge
+
+
+services:
+  # Zenoh service
+  zenoh:
+    image: "aichallenge-2025-dev-${USER}"
+    container_name: "zenoh"
+    stop_grace_period: 0.1s
+    privileged: true
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - ROS_DISTRO=humble
+      - USER=${USER}
+    volumes:
+      - ../aichallenge:/aichallenge
+      - ./:/vehicle
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri
+    working_dir: /vehicle
+    command: zenoh-bridge-ros2dds -c /vehicle/zenoh.json5
+
+  # Driver service
+  driver:
+    image: "ghcr.io/tier4/racing_kart_interface"
+    container_name: "racing_kart_interface"
+    stop_grace_period: 0.1s
+    privileged: true
+    network_mode: host
+    environment:
+      - DISPLAY=${DISPLAY}
+      - USER=${USER}
+    volumes:
+      - /dev/vcu:/dev/vcu
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/dri:/dev/dri
+    devices:
+      - /dev/dri
+      - /dev/vcu
+    group_add:
+      - dialout
+
+  # Autoware service
+  autoware:
+    <<: *autoware-base 
+    container_name: "aic-2025-autoware"
+    stop_grace_period: 0.1s
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && exec bash run_autoware.bash vehicle"]
+
+  # rosbag record 
+  rosbag:
+    <<: *autoware-base 
+    container_name: "aic-2025-rosbag"
+    command: ["bash", "-c", "source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && exec ros2 bag record -a"]
+
+  # Aic-build service
+  aic-build:
+    <<: *autoware-base
+    container_name: "aic-2025-build"
+    stop_grace_period: 0.1s
+    command: ['bash', '-c', 'source /opt/ros/humble/setup.bash && source /autoware/install/setup.bash && cd /aichallenge && timeout 1800 bash build_autoware.bash|| echo "Build failed or timed out"']

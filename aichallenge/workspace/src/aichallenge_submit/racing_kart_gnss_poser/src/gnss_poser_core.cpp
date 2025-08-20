@@ -61,7 +61,7 @@ GNSSPoser::GNSSPoser(const rclcpp::NodeOptions & node_options)
   fixed_pub_ = create_publisher<tier4_debug_msgs::msg::BoolStamped>("gnss_fixed", rclcpp::QoS{1});
 
   gear_report_sub_ = create_subscription<autoware_auto_vehicle_msgs::msg::GearReport>(
-    "/vehicle/status/gear_report", rclcpp::QoS{1},
+    "/vehicle/status/gear_status", rclcpp::QoS{1},
     [this](const autoware_auto_vehicle_msgs::msg::GearReport::SharedPtr msg)
     {
       if (msg->report == autoware_auto_vehicle_msgs::msg::GearReport::DRIVE)

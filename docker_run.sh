@@ -9,6 +9,11 @@ case "${target}" in
 "dev")
     volume="output:/output aichallenge:/aichallenge remote:/remote vehicle:/vehicle"
     ;;
+"rm")
+    # clean up old <none> images
+    docker image prune -f
+    exit 1
+    ;;
 *)
     echo "invalid argument (use 'dev' or 'eval')"
     exit 1

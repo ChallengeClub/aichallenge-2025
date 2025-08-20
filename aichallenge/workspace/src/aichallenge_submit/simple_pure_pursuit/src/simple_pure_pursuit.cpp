@@ -72,15 +72,8 @@ void SimplePurePursuit::onTimer()
   // publish zero command
   AckermannControlCommand cmd = zeroAckermannControlCommand(get_clock()->now());
 
-  if (
-    (closet_traj_point_idx == trajectory_->points.size() - 1) ||
-    (trajectory_->points.size() <= 2)) {
-    cmd.longitudinal.speed = 0.0;
-    cmd.longitudinal.acceleration = -10.0;
-    RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 1000 /*ms*/, "reached to the goal");
-  } else {
-    // get closest trajectory point from current position
-    TrajectoryPoint closet_traj_point = trajectory_->points.at(closet_traj_point_idx);
+  // get closest trajectory point from current position
+  TrajectoryPoint closet_traj_point = trajectory_->points.at(closet_traj_point_idx);
 
     // calc longitudinal speed and acceleration
     double target_longitudinal_vel =
@@ -124,13 +117,13 @@ void SimplePurePursuit::onTimer()
     double lookahead_point_x = lookahead_point_itr->pose.position.x;
     double lookahead_point_y = lookahead_point_itr->pose.position.y;
 
-    geometry_msgs::msg::PointStamped lookahead_point_msg;
-    lookahead_point_msg.header.stamp = get_clock()->now();
-    lookahead_point_msg.header.frame_id = "map";
-    lookahead_point_msg.point.x = lookahead_point_x;
-    lookahead_point_msg.point.y = lookahead_point_y;
-    lookahead_point_msg.point.z = closet_traj_point.pose.position.z;
-    pub_lookahead_point_->publish(lookahead_point_msg);
+  geometry_msgs::msg::PointStamped lookahead_point_msg;
+  lookahead_point_msg.header.stamp = get_clock()->now();
+  lookahead_point_msg.header.frame_id = "map";
+  lookahead_point_msg.point.x = lookahead_point_x;
+  lookahead_point_msg.point.y = lookahead_point_y;
+  lookahead_point_msg.point.z = closet_traj_point.pose.position.z;
+  pub_lookahead_point_->publish(lookahead_point_msg);
 
     // calc steering angle for lateral control
     double alpha =
