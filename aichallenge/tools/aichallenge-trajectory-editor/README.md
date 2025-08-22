@@ -52,10 +52,46 @@ pip install -r requirements.txt
 - csv editor
 
 ```bash
-cd aichallenge-trajectopry-editor
+cd aichallenge/tools/aichallenge-trajectory-editor
 source .venv/bin/activate
 ./cmd_line/csv_editor
 ```
+
+- 操作
+
+  - [Load lane]
+    - aichallenge/workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm.csv
+
+  - [Load trj]
+    - aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/raceline_awsim_v2isshy_34p99kph_07.csv
+
+  - Show Labels ： 速度ラベルを表示
+  - Add Point ： 点を追加
+  - Move Point : 点を移動
+  - Delete Point : 点を削除
+  - Edit a Label : 速度ラベルの変更
+  - Edit Lables : 選択した範囲の速度ラベルの一斉変更
+
+  - [Save CSV] : 保存
+  - [Post] : 未実装
+  - [Quit] : 終了
+  
+  - Dark Mode : ダークモード
+  - Move Selected Points : 選択範囲を一斉移動
+  - Straight Lien : 選択範囲を直線化
+
+  - [Smooth] : 全体をスムース化（あまり使えない）
+    - Smoothing Window
+
+  - [Generate Speed] : 速度ラベルの付け直し
+    - Max Speed[km/h] : 34.99
+    - Friction Coeff(μ): 0.8
+    - Min Speed[km/h] : 34.99
+    - Max Accel(m/s^2) : 2.0
+    - Speed Smooth Window : 3
+    - 上記設定では、すべて 34.99 kph に設定される
+
+  - [Publish ROS] : 未実装
 
 - csv converter from osm
 
