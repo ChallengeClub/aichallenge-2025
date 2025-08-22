@@ -213,7 +213,8 @@ class Analyzer:
 
         pose_x = [d[1] for d in pose_time_stamp]
         pose_y = [d[2] for d in pose_time_stamp]
-        speed_values = [d[1] for d in pose_speed_filter]
+        # m/s → km/h に変換
+        speed_values = [d[1] * 3.6 for d in pose_speed_filter]
         accel_values = [d[1] for d in pose_acceleration_filter]
         steering_values = [d[1] for d in pose_steering_filter]
 
@@ -223,8 +224,8 @@ class Analyzer:
                 x=pose_x, y=pose_y, mode='markers',
                 marker=dict(
                     size=3, color=speed_values, colorscale='Viridis', showscale=True,
-                    cmin=min(speed_values), cmax=max(speed_values),
-                    colorbar=dict(title='', thickness=15, x=0.25, y=0.47, len=0.50, orientation='h')
+                    cmin=30, cmax=35,
+                    colorbar=dict(title='km/h', thickness=15, x=0.25, y=0.47, len=0.50, orientation='h')
                 ),
                 name='Velocity'
             ), row=1, col=1)

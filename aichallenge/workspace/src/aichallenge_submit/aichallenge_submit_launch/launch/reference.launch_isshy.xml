@@ -120,7 +120,11 @@
       <node pkg="simple_trajectory_generator" exec="simple_trajectory_generator_node" name="simple_trajectory_generator" output="screen">
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_30km_from_garage.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_30kph.csv"/> -->
-            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_02.csv"/>
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_02.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_07.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_08.csv"/> -->
+            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_09.csv"/>
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_01.csv"/> -->
             <param name="z" value="6.5"/>
       </node>
       
@@ -153,10 +157,11 @@
 
     <!-- 速度リミッタ用パラメータ -->
     <!-- リミッターOFF -->
-    <!-- <param name="speed_limit1" value="35.00"/> -->
+    <!-- <param name="speed_limit1" value="40.00"/> -->
     <!-- <param name="accel_limit1" value="-0.2"/>  -->
     <!-- リミッターON -->
-    <param name="speed_limit1" value="34.60"/>
+    <!-- MODE=04 -->
+    <param name="speed_limit1" value="34.90"/>
     <param name="accel_limit1" value="-0.08"/>
     <param name="speed_limit2" value="34.95"/>
     <param name="accel_limit2" value="-0.2"/>
