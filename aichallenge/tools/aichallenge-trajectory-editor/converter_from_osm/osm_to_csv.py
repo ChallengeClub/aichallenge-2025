@@ -1,4 +1,8 @@
-# OSM to lane CSV converter
+"""
+OSM to lane CSV converter
+
+本スクリプトは、lanelet2形式のOSMファイルから左右レーン端点の座標を抽出し、lane.csv形式で出力します。
+"""
 import xml.etree.ElementTree as ET
 import csv
 from collections import defaultdict, deque
@@ -6,8 +10,18 @@ import argparse
 
 # コマンドライン引数の処理
 parser = argparse.ArgumentParser(description="Convert lanelet2 OSM to lane.csv format.")
-parser.add_argument("--osm_path", type=str, default="../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm", help="input OSM file path")
-parser.add_argument("--csv_path", type=str, default="../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm.csv", help="output CSV file path")
+parser.add_argument(\
+    "--osm_path",\
+    type=str,\
+    default="../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm",\
+    help="input OSM file path"\
+)
+parser.add_argument(\
+    "--csv_path",\
+    type=str,\
+    default="../../workspace/src/aichallenge_submit/aichallenge_submit_launch/map/lanelet2_map.osm.csv",\
+    help="output CSV file path"\
+)
 args = parser.parse_args()
 osm_path = args.osm_path
 csv_path = args.csv_path
@@ -36,17 +50,29 @@ for relation in root.findall("relation"):
 
 # way id -> node id 列
 def get_way_nodes():
-    way_nodes = {}
+    """
+    way id から node id 列への辞書を作成
+    Returns:
+        dict: way_id -> [node_id, ...]
+    """
+    way_nodes_local = {}
     for way in root.findall("way"):
         way_id = way.attrib["id"]
         node_list = [nd.attrib["ref"] for nd in way.findall("nd")]
-        way_nodes[way_id] = node_list
-    return way_nodes
+        way_nodes_local[way_id] = node_list
+    return way_nodes_local
 
 way_nodes = get_way_nodes()
 
 # wayを端点でつなげて連続したノード列を作る
 def connect_ways(way_id_list):
+    """
+    way_id_listで指定されたwayを端点でつなげて連続したノード列を作る
+    Args:
+        way_id_list (list): way id のリスト
+    Returns:
+        list: 連結されたnode idのリスト
+    """
     # 端点からwayを引く辞書
     endpoints = defaultdict(list)
     for wid in way_id_list:
