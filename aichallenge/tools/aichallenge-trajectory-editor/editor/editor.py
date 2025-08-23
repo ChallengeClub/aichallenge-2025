@@ -10,17 +10,6 @@ from tkinter import filedialog
 from tkinter import messagebox
 import subprocess
 
-# ROS 2関連のインポート
-try:
-    import rclpy
-    from rclpy.node import Node
-    from autoware_auto_planning_msgs.msg import Trajectory, TrajectoryPoint
-    from geometry_msgs.msg import Pose, Point, Quaternion
-    ROS2_AVAILABLE = True
-except ImportError:
-    ROS2_AVAILABLE = False
-
-
 class PlotTool:
     def __init__(self, master):
         self.master = master
@@ -101,9 +90,9 @@ class PlotTool:
         self.generate_speed_button = tk.Button(self.frame, text="Generate Speed", command=self.generate_speed_profile)
         self.generate_speed_button.grid(row=0, column=15, padx=5, pady=5)
 
-        # ROS 2 Publisherボタン
-        self.publish_ros_button = tk.Button(self.frame, text="Publish to ROS", command=self.publish_ros_trajectory, state=tk.DISABLED)
-        self.publish_ros_button.grid(row=0, column=16, padx=5, pady=5)
+        # Interpolate x2 ボタンの追加
+        self.interpolate_button = tk.Button(self.frame, text="Interpolate x2", command=self.interpolate_points)
+        self.interpolate_button.grid(row=0, column=16, padx=5, pady=5)
 
         # オプションメニュー
         self.options_frame = tk.Frame(master)
@@ -179,8 +168,6 @@ class PlotTool:
         self.speed_smooth_window_entry = tk.Entry(self.options_frame, textvariable=self.speed_smooth_window_var)
         self.speed_smooth_window_entry.grid(row=4, column=3, padx=5, pady=5)
 
-
-
         # 変数の変更を監視
         self.initial_label_value.trace("w", self.on_option_change)
         self.low_offset_value.trace("w", self.on_option_change)
@@ -236,27 +223,6 @@ class PlotTool:
 
         self.default_map_path = self.parent_dir + '/csv/lane.csv'
         self.load_map(self.default_map_path)
-
-        # ROS 2の初期化
-        self.node = None
-        if ROS2_AVAILABLE:
-            try:
-                rclpy.init()
-                self.node = Node('trajectory_editor_node')
-                self.traj_publisher = self.node.create_publisher(Trajectory, '/planning/scenario_planning/trajectory', 10)
-                self.publish_ros_button.config(state=tk.NORMAL)
-                self.master.after(100, self.ros_spin) # 100msごとにspin
-                self.master.protocol("WM_DELETE_WINDOW", self.on_closing)
-                print("ROS 2 node initialized successfully.")
-            except Exception as e:
-                messagebox.showerror("ROS 2 Error", f"Failed to initialize ROS 2 node: {e}")
-                if self.node:
-                    self.node.destroy_node()
-                if rclpy.ok():
-                    rclpy.shutdown()
-                self.node = None
-        else:
-            print("rclpy or Autoware messages not found. ROS 2 features are disabled.")
 
     def set_mode(self, active_var):
         """A unified method to handle mode changes."""
@@ -323,6 +289,7 @@ class PlotTool:
         if not file_path:
             return
         self.x, self.y, self.labels = [], [], []
+        self.z, self.x_q, self.y_q, self.z_q, self.w_q = [], [], [], [], []  # ← 追加
         with open(file_path, 'r') as file:
             reader = csv.reader(file)
             i = 0
@@ -694,7 +661,12 @@ class PlotTool:
             self.plot_data()
 
     def calc_quaternion(self):
-        # すべての点において、次の点を使ってクォータニオンを計算(yawのみ)
+        # self.zの長さをself.xに合わせて補正
+        if len(self.z) < len(self.x):
+            self.z += [0.0] * (len(self.x) - len(self.z))
+        elif len(self.z) > len(self.x):
+            self.z = self.z[:len(self.x)]
+
         self.x_q.clear()
         self.y_q.clear()
         self.z_q.clear()
@@ -739,47 +711,6 @@ class PlotTool:
     
     def kmh_to_ms(self, kmh):
         return kmh / 3.6
-
-    def publish_ros_trajectory(self):
-        if not self.node or not self.x:
-            messagebox.showwarning("Warning", "ROS 2 node is not running or no trajectory data.")
-            return
-
-        # 軌跡データを最新の状態に更新
-        self.calc_quaternion()
-
-        # Trajectoryメッセージを作成
-        traj_msg = Trajectory()
-        traj_msg.header.stamp = self.node.get_clock().now().to_msg()
-        traj_msg.header.frame_id = "map"
-
-        for i in range(len(self.x)):
-            point = TrajectoryPoint()
-            
-            # Poseを設定
-            pose = Pose()
-            pose.position.x = float(self.x[i])
-            pose.position.y = float(self.y[i])
-            pose.position.z = float(self.z[i]) if i < len(self.z) else 0.0
-            
-            pose.orientation.w = float(self.w_q[i])
-            pose.orientation.x = float(self.x_q[i])
-            pose.orientation.y = float(self.y_q[i])
-            pose.orientation.z = float(self.z_q[i])
-            
-            point.pose = pose
-            
-            # 速度を設定
-            point.longitudinal_velocity_mps = float(self.labels[i])
-            
-            traj_msg.points.append(point)
-
-        # 最後の点を追加してループを閉じる
-        if len(self.x) > 1 and (self.x[0] != self.x[-1] or self.y[0] != self.y[-1]):
-            traj_msg.points.append(traj_msg.points[0])
-
-        self.traj_publisher.publish(traj_msg)
-        messagebox.showinfo("Info", f"Trajectory published to {self.traj_publisher.topic_name}")
 
     def ros_spin(self):
         if self.node and rclpy.ok():
@@ -994,12 +925,52 @@ class PlotTool:
         smoothed_data = np.convolve(padded_data, weights, 'valid')
         return smoothed_data.tolist()
 
+    def interpolate_points(self):
+        """
+        経路点の間を線形補間して点数を2倍にする
+        """
+        if not self.x or not self.y or not self.labels:
+            return
+
+        # self.zが空の場合は0で埋める
+        if not self.z or len(self.z) != len(self.x):
+            self.z = [0.0] * len(self.x)
+
+        new_x, new_y, new_z = [], [], []
+        new_labels = []
+        n = len(self.x)
+        for i in range(n):
+            # 現在の点
+            x0, y0 = self.x[i], self.y[i]
+            z0 = self.z[i]
+            l0 = self.labels[i]
+            # 次の点（ループ）
+            j = (i + 1) % n
+            x1, y1 = self.x[j], self.y[j]
+            z1 = self.z[j]
+            l1 = self.labels[j]
+            # 現在の点を追加
+            new_x.append(x0)
+            new_y.append(y0)
+            new_z.append(z0)
+            new_labels.append(l0)
+            # 中間点を追加
+            mx = (x0 + x1) / 2
+            my = (y0 + y1) / 2
+            mz = (z0 + z1) / 2
+            ml = (l0 + l1) / 2
+            new_x.append(mx)
+            new_y.append(my)
+            new_z.append(mz)
+            new_labels.append(ml)
+        self.x = new_x
+        self.y = new_y
+        self.z = new_z
+        self.labels = new_labels
+        self.plot_data()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     plot_tool = PlotTool(root)
-    # on_closingメソッドが設定されている場合、ウィンドウが閉じる際に
-    # 適切にシャットダウン処理が行われる。
-    # ROSが利用できない場合は、on_closingは設定されないが、
-    # master.quitが呼ばれるので問題ない。
     root.mainloop()
