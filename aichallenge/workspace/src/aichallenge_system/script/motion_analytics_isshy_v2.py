@@ -224,7 +224,7 @@ class Analyzer:
                 x=pose_x, y=pose_y, mode='markers',
                 marker=dict(
                     size=3, color=speed_values, colorscale='Viridis', showscale=True,
-                    cmin=30, cmax=35,
+                    cmin=25, cmax=35,
                     colorbar=dict(title='km/h', thickness=15, x=0.25, y=0.47, len=0.50, orientation='h')
                 ),
                 name='Velocity'
@@ -236,7 +236,7 @@ class Analyzer:
                 x=pose_x, y=pose_y, mode='markers',
                 marker=dict(
                     size=3, color=accel_values, colorscale='Plasma', showscale=True,
-                    cmin=min(accel_values), cmax=max(accel_values),
+                    cmin=-1.5, cmax=+1.0,
                     colorbar=dict(title='', thickness=15, x=0.75, y=0.47, len=0.50, orientation='h')
                 ),
                 name='Acceleration'

@@ -99,6 +99,8 @@
     <group>
       <node pkg="twist2accel" exec="twist2accel" name="twist2accel" output="screen">
         <param name="accel_lowpass_gain" value="0.9"/>
+        <!-- <param name="accel_lowpass_gain" value="0.5"/> -->
+        <!-- <param name="accel_lowpass_gain" value="0.0"/> -->
         <param name="use_odom" value="true"/>
         <remap from="input/odom" to="/localization/kinematic_state"/>
         <remap from="input/twist" to="/localization/twist_estimator/twist_with_covariance"/>
@@ -123,8 +125,16 @@
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_02.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_07.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_08.csv"/> -->
-            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_09.csv"/>
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_09.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_01.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_10.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_11.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_12.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_13.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_14.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_15.csv"/> -->
+            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_16.csv"/>
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_03.csv"/> -->
             <param name="z" value="6.5"/>
       </node>
       
@@ -133,12 +143,14 @@
 
   <!-- Pure Pursuit -->
   <let name="steering_tire_angle_gain_var" value="1.50" if="$(var simulation)"/>
+  <!-- <let name="steering_tire_angle_gain_var" value="1.00" if="$(var simulation)"/> -->
   <let name="steering_tire_angle_gain_var" value="1.639" unless="$(var simulation)"/>
 
   <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
     <param name="use_external_target_vel" value="false"/>
     <param name="external_target_vel" value="10.0"/>
     <param name="lookahead_gain" value="0.5"/>
+    <!-- <param name="lookahead_gain" value="0.3"/> -->
     <param name="lookahead_min_distance" value="3.5"/>
     <!-- 前方注視距離 = lookahead_gain * 現在の車速 + lookahead_min_distance -->
     <!-- limiter off -->
@@ -149,8 +161,8 @@
     <param name="max_acceleration" value="3.0"/>
     <param name="min_acceleration" value="-5.0"/>
     <param name="steering_tire_angle_gain" value="$(var steering_tire_angle_gain_var)"/>
-    <param name="steering_dead_zone_rad" value="0.00"/> <!-- 0.01 rad is about 0.57 deg -->
-
+    <param name="steering_dead_zone_deg" value="0.00"/>
+    <param name="steering_limit_deg" value="180.0"/>
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
     <remap from="output/control_cmd" to="/control/command/control_cmd"/>
@@ -160,7 +172,7 @@
     <!-- <param name="speed_limit1" value="40.00"/> -->
     <!-- <param name="accel_limit1" value="-0.2"/>  -->
     <!-- リミッターON -->
-    <!-- MODE=04 -->
+    <!-- MODE=03 -->
     <param name="speed_limit1" value="34.90"/>
     <param name="accel_limit1" value="-0.08"/>
     <param name="speed_limit2" value="34.95"/>

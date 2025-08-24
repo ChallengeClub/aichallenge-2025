@@ -26,7 +26,8 @@ SimplePurePursuit::SimplePurePursuit()
   steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0)),
   max_acceleration_(declare_parameter<float>("max_acceleration", 3.0)),
   min_acceleration_(declare_parameter<float>("min_acceleration", -5.0)),
-  steering_dead_zone_rad_(declare_parameter<double>("steering_dead_zone_rad", 0.0)),
+  steering_dead_zone_deg_(declare_parameter<double>("steering_dead_zone_deg", 0.0)),
+  steering_limit_deg_(declare_parameter<double>("steering_limit_deg", 180.0)),
   speed_limit1_(declare_parameter<double>("speed_limit1", 34.60)),
   accel_limit1_(declare_parameter<double>("accel_limit1", -0.09)),
   speed_limit2_(declare_parameter<double>("speed_limit2", 34.95)),
@@ -98,6 +99,7 @@ void SimplePurePursuit::onTimer()
     // calc lateral control
     //// calc lookahead distance
     double lookahead_distance = lookahead_gain_ * target_longitudinal_vel + lookahead_min_distance_;
+    // double lookahead_distance = lookahead_gain_ * current_longitudinal_vel + lookahead_min_distance_;
     const double yaw = tf2::getYaw(odometry_->pose.pose.orientation);
     //// calc center coordinate of rear wheel
     double rear_x = odometry_->pose.pose.position.x -
@@ -111,9 +113,9 @@ void SimplePurePursuit::onTimer()
         return std::hypot(point.pose.position.x - rear_x, point.pose.position.y - rear_y) >=
                lookahead_distance;
       });
-    if (lookahead_point_itr == trajectory_->points.end()) {
-      lookahead_point_itr = trajectory_->points.end() - 1;
-    }
+    // if (lookahead_point_itr == trajectory_->points.end()) {
+    //   lookahead_point_itr = trajectory_->points.end() - 1;
+    // }
     double lookahead_point_x = lookahead_point_itr->pose.position.x;
     double lookahead_point_y = lookahead_point_itr->pose.position.y;
 
@@ -131,9 +133,17 @@ void SimplePurePursuit::onTimer()
   cmd.lateral.steering_tire_angle =
     steering_tire_angle_gain_ * std::atan2(2.0 * wheel_base_ * std::sin(alpha), lookahead_distance);
 
-  // Add steering dead zone
-  if (std::abs(cmd.lateral.steering_tire_angle) < steering_dead_zone_rad_) {
+  // Add steering dead zone (deg指定)
+  if (std::abs(cmd.lateral.steering_tire_angle) < steering_dead_zone_deg_ * M_PI / 180.0) {
     cmd.lateral.steering_tire_angle = 0.0;
+  }
+
+  // steering angle limit (deg指定)
+  double steering_limit_rad_ = steering_limit_deg_ * M_PI / 180.0;
+  if (cmd.lateral.steering_tire_angle > steering_limit_rad_) {
+    cmd.lateral.steering_tire_angle = steering_limit_rad_;
+  } else if (cmd.lateral.steering_tire_angle < -steering_limit_rad_) {
+    cmd.lateral.steering_tire_angle = -steering_limit_rad_;
   }
 
   pub_cmd_->publish(cmd);

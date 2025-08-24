@@ -5,6 +5,7 @@ if [[ ${1} == "clean" ]]; then
     rm -r ./workspace/build/* ./workspace/install/*
 fi
 
+cp -p /aichallenge/workspace/src/aichallenge_system/script/motion_analytics_isshy_v2.py /aichallenge/workspace/src/aichallenge_system/script/motion_analytics.py
 cp -p /aichallenge/workspace/src/aichallenge_system/autoware_overlay_rviz_plugin/src/speed_display_4digits.cpp /aichallenge/workspace/src/aichallenge_system/autoware_overlay_rviz_plugin/src/speed_display.cpp
 cp -p /aichallenge/workspace/src/aichallenge_submit/simple_pure_pursuit/src/simple_pure_pursuit_isshy.cpp /aichallenge/workspace/src/aichallenge_submit/simple_pure_pursuit/src/simple_pure_pursuit.cpp
 cp -p /aichallenge/workspace/src/aichallenge_submit/simple_pure_pursuit/include/simple_pure_pursuit/simple_pure_pursuit_isshy.hpp /aichallenge/workspace/src/aichallenge_submit/simple_pure_pursuit/include/simple_pure_pursuit/simple_pure_pursuit.hpp

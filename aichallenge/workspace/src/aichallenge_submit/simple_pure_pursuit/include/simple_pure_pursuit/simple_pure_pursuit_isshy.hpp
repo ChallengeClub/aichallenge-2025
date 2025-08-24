@@ -54,7 +54,8 @@ class SimplePurePursuit : public rclcpp::Node {
   const double steering_tire_angle_gain_;
   const double max_acceleration_;
   const double min_acceleration_;
-  const double steering_dead_zone_rad_;
+  const double steering_dead_zone_deg_;
+  const double steering_limit_deg_;
   const double speed_limit1_;
   const double accel_limit1_;
   const double speed_limit2_;

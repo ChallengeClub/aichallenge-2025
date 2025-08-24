@@ -201,7 +201,58 @@ source .venv/bin/activate
     <param name="accel_limit1" value="-0.2"/>
 ```
 
-| ファイル名 | speed_proportional_gain | total_time | min_time | max_velocity_kmph | max_longitudinal_acceleration | date |
-|------------|-------------------------|------------|----------|-------------------|-------------------------------|------|
-| raceline_awsim_v2isshy_34p99kph_09.csv | x99  | **251.11841583251953** |   41.3746337890625    | **35.02675590604106**   |   0.6113181683601228   | 2025-08-22 19:00 |
-| raceline_awsim_v2isshy_40kp.csv        | x99  |   251.3184585571289    | **41.23460388183594** |   34.976416319408195    | **0.7712124968249672** | 2025-08-22 21:39 |
+| ファイル名 | total_time | min_time | max_velocity_kmph | max_longitudinal_acceleration | date |
+|------------|------------|----------|-------------------|-------------------------------|------|
+| raceline_awsim_v2isshy_34p99kph_09.csv |  **251.11841583251953** |   41.3746337890625    | **35.02675590604106**   |   0.6113181683601228   | 2025-08-22 19:00 |
+| raceline_awsim_v2isshy_40kp_01.csv     |    251.3184585571289    | **41.23460388183594** |   34.976416319408195    | **0.7712124968249672** | 2025-08-22 21:39 |
+
+- Limmitter OFF
+
+```reference.launch.xml
+        <param name="accel_lowpass_gain" value="0.0"/>
+
+    <param name="speed_proportional_gain" value="99.0"/> 
+
+    <param name="speed_limit1" value="40.00"/>
+    <param name="accel_limit1" value="-0.2"/>
+```
+
+| ファイル名 |  total_time | min_time | max_velocity_kmph | max_longitudinal_acceleration | date |
+|------------|------------|----------|-------------------|-------------------------------|------|
+| raceline_awsim_v2isshy_34p99kph_10.csv |   252.95880889892578   |   41.574676513671875  |   35.0639582780021      |   3.509670624656991    | 2025-08-23 17:31 |
+| raceline_awsim_v2isshy_34p99kph_11.csv |   255.0292510986328    |   41.9997673034668    |   34.99690233465933     |   4.173248401044381    | 2025-08-23 17:44 |
+| raceline_awsim_v2isshy_34p99kph_12.csv |   256.21450424194336   |   42.27982711791992   |   35.01701868822936     |   2.512420110724437    | 2025-08-23 18:09 |
+| raceline_awsim_v2isshy_34p99kph_13.csv |   255.91944122314453   |   42.05978012084961   |   35.04343779891253     |   3.6668871503623635   | 2025-08-23 18:07 |
+| raceline_awsim_v2isshy_34p99kph_14.csv |   256.1744956970215    |   42.37984848022461   |   35.04751213055151     |   2.1067230725848596   | 2025-08-23 18:30 |
+| raceline_awsim_v2isshy_40kp_02.csv     |   255.16427993774414   |   42.1898078918457    |   35.02675121551064     |   3.2774864152118295   | 2025-08-23 19:00 |
+
+### リミッタ有り x99　MODE=03 , 経路09 ベースで
+
+- 速度リミッタ MODE=03 と定義
+
+```reference.launch.xml
+    <param name="speed_proportional_gain" value="99.0"/> 
+
+    <param name="speed_limit1" value="34.90"/>
+    <param name="accel_limit1" value="-0.08"/>
+    <param name="speed_limit2" value="34.95"/>
+    <param name="accel_limit2" value="-0.2"/>
+```
+
+- いずれかを選択
+
+```reference.launch.xml
+        <param name="accel_lowpass_gain" value="0.0"/>
+        <param name="accel_lowpass_gain" value="0.5"/>
+        <param name="accel_lowpass_gain" value="0.9"/>
+```
+
+| ファイル名 | accel_lowpass_gain | total_time | min_time | max_velocity_kmph | max_longitudinal_acceleration | date |
+|------------|--------------------|------------|----------|-------------------|-------------------------------|------|
+| raceline_awsim_v2isshy_34p99kph_09.csv | 0.9  |   250.06319046020508   |   41.14458465576172    |   35.001887120310215    |   0.5693238584101983   | 2025-08-22 19:00 |
+| raceline_awsim_v2isshy_34p99kph_15.csv | 0.9  |   249.72811889648438   |   41.244606018066406   |   34.99745783217101     |   0.5566961934746677   | 2025-08-23 15:53 |
+| raceline_awsim_v2isshy_34p99kph_16.csv | 0.9  | **249.5130729675293**  |   41.244606018066406   | **35.03170775355064**   |   0.5749447374914741   | 2025-08-23 16:13 |
+| raceline_awsim_v2isshy_34p99kph_09.csv | 0.0  |   250.5332908630371    |   41.209598541259766   |   34.984782880491935    | **2.879574614192748**  | 2025-08-22 19:00 |
+| raceline_awsim_v2isshy_34p99kph_15.csv | 0.0  |   - 走行不可 -         |   -----------------    |   -----------------     |   -----------------    | 2025-08-23 15:53 |
+| raceline_awsim_v2isshy_34p99kph_16.csv | 0.0  |   249.9631690979004    | **41.06456756591797**  |   35.02058450642681     |   1.699334086587449    | 2025-08-23 16:13 |
+| raceline_awsim_v2isshy_34p99kph_16.csv | 0.5  |   250.02818298339844   |   41.324623107910156   |   35.01495175269111     |   1.0493793688986521   | 2025-08-23 16:13 |
