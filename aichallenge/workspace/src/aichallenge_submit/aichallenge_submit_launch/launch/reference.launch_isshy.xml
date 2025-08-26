@@ -98,9 +98,9 @@
     <!-- twist2accel -->
     <group>
       <node pkg="twist2accel" exec="twist2accel" name="twist2accel" output="screen">
-        <param name="accel_lowpass_gain" value="0.9"/>
+        <!-- <param name="accel_lowpass_gain" value="0.9"/> -->
         <!-- <param name="accel_lowpass_gain" value="0.5"/> -->
-        <!-- <param name="accel_lowpass_gain" value="0.0"/> -->
+        <param name="accel_lowpass_gain" value="0.0"/>
         <param name="use_odom" value="true"/>
         <remap from="input/odom" to="/localization/kinematic_state"/>
         <remap from="input/twist" to="/localization/twist_estimator/twist_with_covariance"/>
@@ -127,14 +127,11 @@
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_08.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_09.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_01.csv"/> -->
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_10.csv"/> -->
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_11.csv"/> -->
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_12.csv"/> -->
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_13.csv"/> -->
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_14.csv"/> -->
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_15.csv"/> -->
-            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_16.csv"/>
-            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_03.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_16.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_17.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_18.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_19.csv"/> -->
+            <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_05.csv"/>
             <param name="z" value="6.5"/>
       </node>
       
@@ -169,14 +166,16 @@
 
     <!-- 速度リミッタ用パラメータ -->
     <!-- リミッターOFF -->
-    <!-- <param name="speed_limit1" value="40.00"/> -->
-    <!-- <param name="accel_limit1" value="-0.2"/>  -->
+    <param name="speed_limit1" value="40.00"/>
+    <param name="accel_limit1" value="-0.2"/> 
+    <param name="speed_limit2" value="40.00"/>
+    <param name="accel_limit2" value="-0.2"/>
     <!-- リミッターON -->
     <!-- MODE=03 -->
-    <param name="speed_limit1" value="34.90"/>
-    <param name="accel_limit1" value="-0.08"/>
-    <param name="speed_limit2" value="34.95"/>
-    <param name="accel_limit2" value="-0.2"/>
+    <!-- <param name="speed_limit1" value="34.90"/> -->
+    <!-- <param name="accel_limit1" value="-0.08"/> -->
+    <!-- <param name="speed_limit2" value="34.95"/> -->
+    <!-- <param name="accel_limit2" value="-0.2"/> -->
   </node>
 
   <!-- Map -->
