@@ -260,6 +260,7 @@ source .venv/bin/activate
 ### リミッタ無し x99　MODE=03
 
 ```reference.launch.xml
+    <param name="lookahead_gain" value="0.5"/>
     <!-- リミッターOFF -->
     <param name="speed_limit1" value="40.00"/>
     <param name="accel_limit1" value="-0.2"/> 
@@ -276,4 +277,18 @@ source .venv/bin/activate
 | raceline_awsim_v2isshy_34p99kph_18.csv | 0.0  |   250.23322677612305   |   41.264610290527344   |   35.07039887614379     |   2.1229356618435222   | 2025-08-26 19:35 |
 | raceline_awsim_v2isshy_40kph_04.csv    | 0.0  |   250.17821502685547   |   41.27461242675781    |   36.02177331405689     |   1.6963692932181484   | 2025-08-26 20:54 |
 | raceline_awsim_v2isshy_40kph_05.csv    | 0.0  | **249.27802276611328** | **40.924537658691406** | **36.36655321682772**   | **3.618847418242943**  | 2025-08-26 21:02 |
+| raceline_awsim_v2isshy_40kph_06.csv    | 0.0  |   251.64852905273438   |   41.5496711730957     |   35.64432035087291     |   2.8619525844671756   | 2025-08-26 20:54 |
 
+```reference.launch.xml
+    <param name="lookahead_gain" value="0.4"/>
+    <!-- リミッターOFF -->
+    <param name="speed_limit1" value="40.00"/>
+    <param name="accel_limit1" value="-0.2"/> 
+    <param name="speed_limit2" value="40.00"/>
+    <param name="accel_limit2" value="-0.2"/>
+```
+
+| ファイル名 | accel_lowpass_gain | total_time | min_time | max_velocity_kmph | max_longitudinal_acceleration | date |
+|------------|--------------------|------------|----------|-------------------|-------------------------------|------|
+| raceline_awsim_v2isshy_45kph_01.csv    | 0.0  |   252.1486358642578   |   41.67469787597656     |   35.87938396000898     |   1.7049517345335994   | 2025-08-26 22:25 |
+| raceline_awsim_v2isshy_45kph_02.csv    | 0.0  |   252.83378219604492  |   41.63468933105469     |   36.32431030097897     |   1.9958719853359952   | 2025-08-26 22:42 |

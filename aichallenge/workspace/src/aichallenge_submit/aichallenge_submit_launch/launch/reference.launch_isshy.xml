@@ -132,6 +132,9 @@
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_18.csv"/> -->
             <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_34p99kph_19.csv"/> -->
             <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_05.csv"/>
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_40kph_06.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_45kph_01.csv"/> -->
+            <!-- <param name="csv_path" value="$(find-pkg-share simple_trajectory_generator)/data/raceline_awsim_v2isshy_45kph_02.csv"/> -->
             <param name="z" value="6.5"/>
       </node>
       
@@ -146,7 +149,8 @@
   <node pkg="simple_pure_pursuit" exec="simple_pure_pursuit" name="simple_pure_pursuit_node" output="screen">
     <param name="use_external_target_vel" value="false"/>
     <param name="external_target_vel" value="10.0"/>
-    <param name="lookahead_gain" value="0.5"/>
+    <!-- <param name="lookahead_gain" value="0.5"/> -->
+    <param name="lookahead_gain" value="0.4"/>
     <!-- <param name="lookahead_gain" value="0.3"/> -->
     <param name="lookahead_min_distance" value="3.5"/>
     <!-- 前方注視距離 = lookahead_gain * 現在の車速 + lookahead_min_distance -->
