@@ -62,8 +62,8 @@ class PlotTool:
         self.save_button.grid(row=0, column=8, padx=5, pady=5)
 
         # 実行ボタン
-        self.run_button = tk.Button(self.frame, text="Post", command=self.run)
-        self.run_button.grid(row=0, column=9, padx=5, pady=5)
+        # self.run_button = tk.Button(self.frame, text="Post", command=self.run)
+        # self.run_button.grid(row=0, column=9, padx=5, pady=5)
 
         # 終了ボタン
         self.quit_button = tk.Button(self.frame, text="Quit", command=self.master.quit)
